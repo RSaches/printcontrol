@@ -1,0 +1,44 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT\n                COUNT(*) as total,\n                SUM(CASE WHEN status = 'PENDING'   THEN 1 ELSE 0 END) as pending,\n                SUM(CASE WHEN status = 'PRINTING'  THEN 1 ELSE 0 END) as printing,\n                SUM(CASE WHEN status = 'COMPLETED' THEN 1 ELSE 0 END) as completed,\n                SUM(CASE WHEN status = 'FAILED'    THEN 1 ELSE 0 END) as failed\n            FROM jobs",
+  "describe": {
+    "columns": [
+      {
+        "name": "total",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "pending",
+        "ordinal": 1,
+        "type_info": "Integer"
+      },
+      {
+        "name": "printing",
+        "ordinal": 2,
+        "type_info": "Integer"
+      },
+      {
+        "name": "completed",
+        "ordinal": 3,
+        "type_info": "Integer"
+      },
+      {
+        "name": "failed",
+        "ordinal": 4,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "099021a1421d0280707ed56d9c38f10e27108036247e05fca437902309021b4b"
+}

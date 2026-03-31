@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT OR IGNORE INTO printers (id, name, created_at) VALUES (?, ?, datetime('now'))",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "6a8cf5337e0a8a03b52b8371441c04dd4e88d84e17690431881c66d478f7a0bb"
+}

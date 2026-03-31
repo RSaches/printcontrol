@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- Corpo impressora -->
+  <rect x="4" y="11" width="24" height="14" rx="2" fill="#1E40AF"/>
+  <!-- Papel entrando -->
+  <rect x="9" y="7" width="14" height="6" rx="1" fill="#BFDBFE"/>
+  <!-- Slot saída -->
+  <rect x="9" y="22" width="14" height="2" rx="1" fill="#93C5FD"/>
+  <!-- Luz status verde -->
+  <circle cx="22" cy="16" r="2" fill="#22C55E"/>
+</svg>

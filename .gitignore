@@ -1,0 +1,33 @@
+# Node
+node_modules/
+dist/
+.pnpm-store/
+
+# Rust / Tauri
+src-tauri/target/
+src-tauri/gen/
+
+# Banco de dados local (não commitar)
+*.db
+*.db-shm
+*.db-wal
+
+# Variáveis de ambiente
+.env
+.env.local
+
+# IDE
+.vscode/settings.json
+.idea/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Logs locais
+*.log
+
+# Documentos Sensíveis de Produção
+spec-for-producao.md
+scripts/inspect-db.cjs
+/tmp/

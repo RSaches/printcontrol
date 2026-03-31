@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /home/sanches/Documentos/PrintControl/printcontrol/src-tauri/src -type f -name *.rs ! -path */target/*)",
+      "Bash(ls:*)",
+      "WebSearch",
+      "WebFetch(domain:v2.tauri.app)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:dev.to)",
+      "WebFetch(domain:www.oflight.co.jp)",
+      "WebFetch(domain:blog.logrocket.com)",
+      "WebFetch(domain:www.papercut.com)",
+      "WebFetch(domain:medium.com)",
+      "WebFetch(domain:dezoito.github.io)",
+      "WebFetch(domain:www.stptexas.com)",
+      "Bash(python3:*)",
+      "Bash(cargo check:*)",
+      "Bash(export PATH=\"$HOME/.cargo/bin:$PATH\")",
+      "Bash(pnpm exec:*)",
+      "Bash(cd:*)",
+      "WebFetch(domain:linear.app)",
+      "WebFetch(domain:ui.shadcn.com)",
+      "WebFetch(domain:www.frontendtools.tech)",
+      "WebFetch(domain:shadcnspace.com)",
+      "WebFetch(domain:www.shadcn.io)",
+      "WebFetch(domain:www.achromatic.dev)",
+      "WebFetch(domain:www.alfdesigngroup.com)",
+      "Bash(find /home/sanches/Documentos/PrintControl/printcontrol -type f -name *.json -o -name *.toml -o -name *.conf)",
+      "WebFetch(domain:docs.rs)",
+      "WebFetch(domain:deepwiki.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:thatgurjot.com)",
+      "WebFetch(domain:ratulmaharaj.com)",
+      "WebFetch(domain:docs.crabnebula.dev)",
+      "Bash(gh api:*)"
+    ]
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT\n                id as \"id!\",\n                spooler_job_id,\n                document_name as \"document_name!\",\n                user_name as \"user_name!\",\n                printer_name as \"printer_name!\",\n                status as \"status!: JobStatus\",\n                pages,\n                size_bytes,\n                created_at as \"created_at!\",\n                updated_at as \"updated_at!\"\n            FROM jobs\n            WHERE id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "id!",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "spooler_job_id",
+        "ordinal": 1,
+        "type_info": "Integer"
+      },
+      {
+        "name": "document_name!",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "user_name!",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "printer_name!",
+        "ordinal": 4,
+        "type_info": "Text"
+      },
+      {
+        "name": "status!: JobStatus",
+        "ordinal": 5,
+        "type_info": "Text"
+      },
+      {
+        "name": "pages",
+        "ordinal": 6,
+        "type_info": "Integer"
+      },
+      {
+        "name": "size_bytes",
+        "ordinal": 7,
+        "type_info": "Integer"
+      },
+      {
+        "name": "created_at!",
+        "ordinal": 8,
+        "type_info": "Text"
+      },
+      {
+        "name": "updated_at!",
+        "ordinal": 9,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "0c0c8462ecc03faf404268ed3f18bfcb88084ccedd443993a88c0c01b36f8a45"
+}

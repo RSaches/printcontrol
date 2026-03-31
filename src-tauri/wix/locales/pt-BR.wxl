@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WixLocalization Culture="pt-BR" Codepage="1252"
+  xmlns="http://schemas.microsoft.com/wix/2006/localization">
+
+  <String Id="WelcomeTitle">Bem-vindo ao assistente de instalação do PrintControl</String>
+  <String Id="WelcomeText">Este assistente irá guiá-lo durante a instalação do [ProductName] no seu computador.\n\nRecomenda-se fechar todos os outros programas antes de continuar.\n\nClique em Avançar para continuar.</String>
+  <String Id="FinishedTitle">Instalação do PrintControl concluída</String>
+  <String Id="FinishedText">O [ProductName] foi instalado com sucesso.\n\nClique em Concluir para fechar o assistente.</String>
+  <String Id="InstallDirDlgTitle">Pasta de destino</String>
+  <String Id="InstallDirDlgBannerTitle">Pasta de destino</String>
+  <String Id="InstallDirDlgBannerText">Clique em Avançar para instalar nesta pasta ou em Alterar para escolher outra pasta.</String>
+  <String Id="ProgressDlgTitle">Instalando [ProductName]</String>
+  <String Id="ProgressDlgBannerTitle">Instalando [ProductName]</String>
+  <String Id="ProgressDlgBannerText">Por favor aguarde enquanto o assistente instala o [ProductName].</String>
+  <String Id="ButtonNext">Avançar &gt;</String>
+  <String Id="ButtonBack">&lt; Voltar</String>
+  <String Id="ButtonCancel">Cancelar</String>
+  <String Id="ButtonFinish">Concluir</String>
+  <String Id="ButtonBrowse">Alterar...</String>
+
+</WixLocalization>

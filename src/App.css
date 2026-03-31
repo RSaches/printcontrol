@@ -1,0 +1,316 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import "tailwindcss";
+
+@plugin "tailwindcss-animate";
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-sidebar-background: hsl(var(--sidebar-background));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: calc(var(--radius) - 1px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* ─────────────────────────────────────────────
+   DESIGN TOKENS — LIGHT MODE
+───────────────────────────────────────────── */
+@layer base {
+  :root {
+    --background:          0 0% 98%;
+    --foreground:          222 47% 8%;
+
+    --card:                0 0% 100%;
+    --card-foreground:     222 47% 8%;
+
+    --popover:             0 0% 100%;
+    --popover-foreground:  222 47% 8%;
+
+    --primary:             221 83% 53%;
+    --primary-foreground:  210 40% 98%;
+
+    --secondary:           214 32% 95%;
+    --secondary-foreground: 222 47% 18%;
+
+    --muted:               214 32% 95%;
+    --muted-foreground:    215 16% 47%;
+
+    --accent:              214 32% 93%;
+    --accent-foreground:   222 47% 18%;
+
+    --destructive:         0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border:              214 32% 91%;
+    --input:               214 32% 91%;
+    --ring:                221 83% 53%;
+
+    --radius: 0.5rem;
+
+    /* === Sidebar tokens === */
+    --sidebar-background:        220 16% 97%;
+    --sidebar-foreground:        222 30% 30%;
+    --sidebar-primary:           221 83% 53%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent:            214 32% 92%;
+    --sidebar-accent-foreground: 222 47% 14%;
+    --sidebar-border:            214 32% 89%;
+    --sidebar-ring:              221 83% 53%;
+
+    /* === Status semânticos === */
+    --status-pending:            38 92% 50%;
+    --status-pending-bg:         48 100% 96%;
+    --status-pending-fg:         32 95% 25%;
+
+    --status-printing:           221 83% 53%;
+    --status-printing-bg:        214 100% 97%;
+    --status-printing-fg:        221 83% 30%;
+
+    --status-completed:          142 72% 29%;
+    --status-completed-bg:       141 84% 95%;
+    --status-completed-fg:       142 76% 20%;
+
+    --status-failed:             0 84% 60%;
+    --status-failed-bg:          0 100% 97%;
+    --status-failed-fg:          0 74% 35%;
+
+    /* === Gradientes para KPI cards === */
+    --gradient-blue:     linear-gradient(135deg, hsl(221 83% 53% / 0.12), hsl(221 83% 53% / 0.04));
+    --gradient-green:    linear-gradient(135deg, hsl(142 72% 29% / 0.12), hsl(142 72% 29% / 0.04));
+    --gradient-amber:    linear-gradient(135deg, hsl(38 92% 50% / 0.12), hsl(38 92% 50% / 0.04));
+    --gradient-red:      linear-gradient(135deg, hsl(0 84% 60% / 0.12), hsl(0 84% 60% / 0.04));
+
+    /* === Tipografia === */
+    --font-sans:   "Inter", system-ui, -apple-system, sans-serif;
+    --font-mono:   "Cascadia Code", "Fira Code", monospace;
+  }
+
+  /* ─────────────────────────────────────────────
+     DESIGN TOKENS — DARK MODE
+  ───────────────────────────────────────────── */
+  .dark {
+    --background:          222 47% 5%;
+    --foreground:          210 40% 96%;
+
+    --card:                222 47% 7%;
+    --card-foreground:     210 40% 96%;
+
+    --popover:             222 47% 7%;
+    --popover-foreground:  210 40% 96%;
+
+    --primary:             217 91% 60%;
+    --primary-foreground:  222 47% 9%;
+
+    --secondary:           217 33% 14%;
+    --secondary-foreground: 210 40% 96%;
+
+    --muted:               217 33% 14%;
+    --muted-foreground:    215 20% 58%;
+
+    --accent:              217 33% 16%;
+    --accent-foreground:   210 40% 96%;
+
+    --destructive:         0 63% 42%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border:              217 33% 14%;
+    --input:               217 33% 14%;
+    --ring:                224 76% 52%;
+
+    --sidebar-background:        222 47% 4%;
+    --sidebar-foreground:        215 20% 65%;
+    --sidebar-primary:           217 91% 60%;
+    --sidebar-primary-foreground: 222 47% 5%;
+    --sidebar-accent:            217 33% 12%;
+    --sidebar-accent-foreground: 210 40% 90%;
+    --sidebar-border:            217 33% 10%;
+    --sidebar-ring:              217 91% 60%;
+
+    --status-pending-bg:         38 70% 12%;
+    --status-pending-fg:         38 90% 65%;
+
+    --status-printing-bg:        221 60% 12%;
+    --status-printing-fg:        217 91% 70%;
+
+    --status-completed-bg:       142 50% 10%;
+    --status-completed-fg:       142 60% 55%;
+
+    --status-failed-bg:          0 60% 12%;
+    --status-failed-fg:          0 80% 65%;
+
+    --gradient-blue:     linear-gradient(135deg, hsl(217 91% 60% / 0.15), hsl(217 91% 60% / 0.05));
+    --gradient-green:    linear-gradient(135deg, hsl(142 60% 55% / 0.15), hsl(142 60% 55% / 0.05));
+    --gradient-amber:    linear-gradient(135deg, hsl(38 90% 65% / 0.15), hsl(38 90% 65% / 0.05));
+    --gradient-red:      linear-gradient(135deg, hsl(0 80% 65% / 0.15), hsl(0 80% 65% / 0.05));
+  }
+}
+
+/* ─────────────────────────────────────────────
+   BASE STYLES
+───────────────────────────────────────────── */
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+    box-sizing: border-box;
+  }
+
+  html {
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: var(--font-sans);
+    font-feature-settings: "rlig" 1, "calt" 1;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
+    cursor: default;
+    overflow: hidden;
+  }
+
+  input, textarea, [contenteditable="true"] {
+    user-select: text;
+    -webkit-user-select: text;
+    cursor: text;
+  }
+
+  /* FIX: Radix UI scroll lock em Tauri */
+  body[data-scroll-locked] {
+    margin-right: 0 !important;
+    margin-left:  0 !important;
+    overflow: visible !important;
+    position: static !important;
+  }
+
+  /* ─── Scrollbar personalizada ──── */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--border));
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground) / 0.5);
+  }
+}
+
+/* ─────────────────────────────────────────────
+   UTILITY CLASSES — Premium Effects
+───────────────────────────────────────────── */
+@layer utilities {
+  /* Glassmorphism */
+  .glass {
+    background: hsl(var(--card) / 0.6);
+    backdrop-filter: blur(12px) saturate(1.8);
+    -webkit-backdrop-filter: blur(12px) saturate(1.8);
+    border: 1px solid hsl(var(--border) / 0.5);
+  }
+
+  .dark .glass {
+    background: hsl(var(--card) / 0.4);
+    border-color: hsl(var(--border) / 0.3);
+  }
+
+  /* Page entrance animation */
+  .page-enter {
+    animation: pageSlideIn 0.25s ease-out;
+  }
+
+  @keyframes pageSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Card hover lift */
+  .card-hover {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px hsl(var(--foreground) / 0.06);
+  }
+
+  /* KPI gradient cards */
+  .kpi-card {
+    border-radius: var(--radius);
+    border: 1px solid hsl(var(--border));
+    padding: 1rem 1.25rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .kpi-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px hsl(var(--foreground) / 0.05);
+  }
+
+  /* Subtle shine on sidebar active link */
+  .nav-active-bar {
+    position: relative;
+  }
+  .nav-active-bar::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 4px;
+    bottom: 4px;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: hsl(var(--sidebar-primary));
+  }
+
+  /* Kbd shortcut badge */
+  .kbd {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 1px 5px;
+    font-size: 10px;
+    font-family: var(--font-sans);
+    font-weight: 500;
+    line-height: 1.4;
+    color: hsl(var(--muted-foreground));
+    background: hsl(var(--muted));
+    border: 1px solid hsl(var(--border));
+    border-radius: 4px;
+  }
+}
