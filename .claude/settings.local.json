@@ -107,7 +107,11 @@
       "Bash(DATABASE_URL=\"sqlite:///home/sanches/.local/share/com.printcontrol.app/printcontrol.db\" ~/.cargo/bin/cargo sqlx prepare)",
       "Bash(find /tmp/claude-1000 -name *.output)",
       "Bash(find ~ -name *.key -o -name *.pub)",
-      "Bash(minisign -v)"
+      "Bash(minisign -v)",
+      "Bash(git -C /home/sanches/Documentos/PrintControl log --oneline)",
+      "Bash(node -e \"const p=require\\(''''./package.json''''\\); console.log\\(''''packageManager:'''', p.packageManager || ''''not set''''\\); console.log\\(''''engines:'''', p.engines || ''''not set''''\\)\")",
+      "Bash(grep -r TAURI_SIGNING src-tauri/ --include=*.toml --include=*.json --include=*.md)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(''''pubkey presente:'''', bool\\(d.get\\(''''plugins'''',{}\\).get\\(''''updater'''',{}\\).get\\(''''pubkey''''\\)\\)\\)\")"
     ]
   }
 }

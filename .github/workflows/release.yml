@@ -1,8 +1,13 @@
 name: Release
+
 on:
   push:
     tags:
       - 'v*'
+
+# Secrets necessários no repositório GitHub (Settings > Secrets > Actions):
+#   TAURI_SIGNING_PRIVATE_KEY         — chave privada minisign (gerada via `tauri signer generate`)
+#   TAURI_SIGNING_PRIVATE_KEY_PASSWORD — senha da chave privada
 
 jobs:
   release:
@@ -12,13 +17,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: 'macos-latest' # for arm64
-            args: '--target aarch64-apple-darwin'
-          - platform: 'macos-latest' # for x86_64
-            args: '--target x86_64-apple-darwin'
-          - platform: 'ubuntu-22.04' # for x86_64
+          - platform: 'ubuntu-22.04'
             args: '--target x86_64-unknown-linux-gnu'
-          - platform: 'windows-latest' # for x86_64
+          - platform: 'windows-latest'
             args: '--target x86_64-pc-windows-msvc'
 
     runs-on: ${{ matrix.platform }}
@@ -37,15 +38,22 @@ jobs:
 
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
-        with:
-          # Those targets are only used on macos runners since it's the only system that can cross-compile
-          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
-      - name: install dependencies (ubuntu only)
+      - name: cache Rust build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: install system dependencies (Linux)
         if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libcups2-dev
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libcups2-dev
 
       - name: install frontend dependencies
         run: pnpm install
@@ -58,7 +66,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
           SQLX_OFFLINE: true
         with:
-          tagName: v__VERSION__ # tauri-action replaces this with the app version
+          tagName: v__VERSION__
           releaseName: 'PrintControl v__VERSION__'
           releaseBody: 'Consulte os ativos abaixo para instalar o PrintControl em seu sistema.'
           releaseDraft: true
