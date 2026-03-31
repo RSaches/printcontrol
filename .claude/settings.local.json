@@ -111,7 +111,11 @@
       "Bash(git -C /home/sanches/Documentos/PrintControl log --oneline)",
       "Bash(node -e \"const p=require\\(''''./package.json''''\\); console.log\\(''''packageManager:'''', p.packageManager || ''''not set''''\\); console.log\\(''''engines:'''', p.engines || ''''not set''''\\)\")",
       "Bash(grep -r TAURI_SIGNING src-tauri/ --include=*.toml --include=*.json --include=*.md)",
-      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(''''pubkey presente:'''', bool\\(d.get\\(''''plugins'''',{}\\).get\\(''''updater'''',{}\\).get\\(''''pubkey''''\\)\\)\\)\")"
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(''''pubkey presente:'''', bool\\(d.get\\(''''plugins'''',{}\\).get\\(''''updater'''',{}\\).get\\(''''pubkey''''\\)\\)\\)\")",
+      "Bash(git check-ignore:*)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(''''version no tag v0.2.5:'''', d[''''version'''']\\)\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(''''version no tag v0.2.4:'''', d[''''version'''']\\)\")",
+      "Bash(python3 -c \"import json; d=json.load\\(open\\(''src-tauri/tauri.conf.json''\\)\\); print\\(''version:'', d[''version'']\\); print\\(''targets:'', d[''bundle''][''targets'']\\)\")"
     ]
   }
 }

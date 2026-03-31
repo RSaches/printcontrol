@@ -53,7 +53,8 @@ jobs:
             libappindicator3-dev \
             librsvg2-dev \
             patchelf \
-            libcups2-dev
+            libcups2-dev \
+            rpm
 
       - name: install frontend dependencies
         run: pnpm install
