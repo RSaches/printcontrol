@@ -1,25 +1,18 @@
-import React, { useState, useEffect } from 'react';
 import { Printer, RefreshCw } from 'lucide-react';
 import { useUpdater } from '../hooks/useUpdater';
 
 export function UpdateModal() {
   const { state, applyUpdate, dismiss } = useUpdater();
 
-  // --- MODO SIMULAÇÃO (Remova isto após testar) ---
-  const [simulatedPercent, setSimulatedPercent] = useState(0);
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setSimulatedPercent(prev => (prev >= 100 ? 0 : prev + 1));
-    }, 50);
-    return () => clearInterval(interval);
-  }, []);
+  // Só mostramos o modal se estiver disponível para baixar ou baixando
+  if (state.status === 'idle' || state.status === 'up_to_date' || (state.status === 'error' && !state.message)) {
+    return null;
+  }
 
-  const isDownloading = true; // Forçado
-  const isAvailable = false;
-  const isError = false;
-  const percent = simulatedPercent;
-  const simulatedVersion = "0.2.1";
-  // ------------------------------------------------
+  const isDownloading = state.status === 'downloading';
+  const isAvailable = state.status === 'available';
+  const isError = state.status === 'error';
+  const percent = isDownloading ? state.progress.percent : 0;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-300">

@@ -1,6 +1,6 @@
 [package]
 name = "printcontrol"
-version = "0.2.0"
+version = "0.2.1"
 description = "Sistema de rastreabilidade de impressão"
 authors = ["PrintControl Team"]
 license = "MIT"
