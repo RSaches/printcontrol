@@ -12,6 +12,7 @@ use infrastructure::storage::sqlite::create_pool;
 use services::settings_manager::SettingsManager;
 use std::sync::Arc;
 use tauri::{  Emitter, Manager};
+use tauri_plugin_updater::UpdaterExt;
 use tauri_plugin_log::{Target, TargetKind};
 use workers::monitor::MonitorWorker;
 
@@ -32,6 +33,7 @@ pub fn run() {
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .setup(|app| {
             let app_handle = app.handle().clone();
 
@@ -84,6 +86,13 @@ pub fn run() {
                 Ok::<(), Box<dyn std::error::Error>>(())
             })?;
 
+            // Verificação de atualização em background — não bloqueia o setup.
+            // Emite "update-available" para o frontend se houver nova versão.
+            let update_handle = app.handle().clone();
+            tauri::async_runtime::spawn(async move {
+                check_for_update(update_handle).await;
+            });
+
             // Preenche o menu da bandeja com dados reais logo após o boot,
             app::tray::setup(app)?;
 
@@ -123,5 +132,32 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("Erro ao executar aplicacao PrintControl");
+}
+
+/// Verifica silenciosamente se há uma atualização disponível.
+/// Em caso positivo, emite o evento "update-available" com a versão nova.
+async fn check_for_update(app: tauri::AppHandle) {
+    match app.updater() {
+        Ok(updater) => {
+            match updater.check().await {
+                Ok(Some(update)) => {
+                    tracing::info!(
+                        "Atualização disponível: v{}", update.version
+                    );
+                    app.emit("update-available", &update.version).ok();
+                }
+                Ok(None) => {
+                    tracing::debug!("Aplicativo está atualizado.");
+                }
+                Err(e) => {
+                    // Falha silenciosa — endpoint pode não estar configurado em dev
+                    tracing::debug!("Verificação de atualização ignorada: {}", e);
+                }
+            }
+        }
+        Err(e) => {
+            tracing::debug!("Updater não disponível: {}", e);
+        }
+    }
 }
 
