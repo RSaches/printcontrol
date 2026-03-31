@@ -1,8 +1,8 @@
 import { Download, X } from 'lucide-react';
-import { useUpdater } from '../hooks/useUpdater';
+import { useUpdaterContext } from '../hooks/useUpdaterContext';
 
 export function UpdateBanner() {
-  const { state, applyUpdate, dismiss } = useUpdater();
+  const { state, applyUpdate, dismiss } = useUpdaterContext();
 
   if (state.status === 'available') {
     return (

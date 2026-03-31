@@ -70,6 +70,6 @@ jobs:
           tagName: v__VERSION__
           releaseName: 'PrintControl v__VERSION__'
           releaseBody: 'Consulte os ativos abaixo para instalar o PrintControl em seu sistema.'
-          releaseDraft: true
+          releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}

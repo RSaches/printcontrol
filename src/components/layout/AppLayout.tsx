@@ -64,14 +64,6 @@ export function AppLayout() {
     }
   });
 
-  // Notifica quando uma nova versão está disponível
-  useTauriEvent<string>("update-available", ({ payload: version }) => {
-    toast.info(`Nova versão disponível: v${version}`, {
-      description: "Acesse as configurações para atualizar.",
-      duration: 10_000,
-    });
-  });
-
   return (
     <div className="flex h-full bg-background overflow-hidden relative">
       <CommandMenu />

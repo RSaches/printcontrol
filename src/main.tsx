@@ -7,6 +7,7 @@ import { AppRouter } from "./router";
 import { ErrorBoundary } from "./components/shared/ErrorBoundary";
 import { UpdateBanner } from "./components/UpdateBanner";
 import { UpdateModal } from "./components/UpdateModal";
+import { UpdaterProvider } from "./hooks/useUpdaterContext";
 import { Titlebar } from "./components/layout/Titlebar";
 import "./index.css";
 
@@ -39,14 +40,16 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <div className="flex flex-col h-screen">
-          <Titlebar />
-          <UpdateBanner />
-          <UpdateModal />
-          <div className="flex-1 overflow-hidden relative">
-            <AppRouter />
+        <UpdaterProvider>
+          <div className="flex flex-col h-screen">
+            <Titlebar />
+            <UpdateBanner />
+            <UpdateModal />
+            <div className="flex-1 overflow-hidden relative">
+              <AppRouter />
+            </div>
           </div>
-        </div>
+        </UpdaterProvider>
         <Toaster richColors position="bottom-right" />
       </QueryClientProvider>
     </ErrorBoundary>

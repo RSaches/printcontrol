@@ -1,8 +1,8 @@
 import { Printer, RefreshCw } from 'lucide-react';
-import { useUpdater } from '../hooks/useUpdater';
+import { useUpdaterContext } from '../hooks/useUpdaterContext';
 
 export function UpdateModal() {
-  const { state, applyUpdate, dismiss } = useUpdater();
+  const { state, applyUpdate, dismiss } = useUpdaterContext();
 
   // Só mostramos o modal se estiver disponível para baixar ou baixando
   if (state.status === 'idle' || state.status === 'up_to_date' || (state.status === 'error' && !state.message)) {
