@@ -130,7 +130,9 @@
       "Bash(curl -s https://raw.githubusercontent.com/talesluna/rust-printers/master/src/windows/winspool/info.rs)",
       "Bash(python3 -c \"import sys,json; [print\\(f[''''path'''']\\) for f in json.load\\(sys.stdin\\)]\")",
       "Bash(curl:*)",
-      "Bash(cargo test:*)"
+      "Bash(cargo test:*)",
+      "Bash(cat /home/sanches/Documentos/PrintControl/.github/workflows/*.yml)",
+      "Bash(cargo generate-lockfile:*)"
     ]
   }
 }
