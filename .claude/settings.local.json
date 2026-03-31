@@ -105,7 +105,9 @@
       "Bash(find /home/sanches/Documentos/PrintControl/printcontrol -name *.rs -type f -path */test* -o -name *_test.rs -o -name *tests*)",
       "Bash(find /home/sanches/Documentos/PrintControl/printcontrol/src -name *.service.ts -o -name *api* -type f)",
       "Bash(DATABASE_URL=\"sqlite:///home/sanches/.local/share/com.printcontrol.app/printcontrol.db\" ~/.cargo/bin/cargo sqlx prepare)",
-      "Bash(find /tmp/claude-1000 -name *.output)"
+      "Bash(find /tmp/claude-1000 -name *.output)",
+      "Bash(find ~ -name *.key -o -name *.pub)",
+      "Bash(minisign -v)"
     ]
   }
 }

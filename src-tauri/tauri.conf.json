@@ -28,7 +28,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDREMzE2NTZDQzgzRkJGMkUKUldRdXZ6L0liR1V4VFp1M1g5VlVKYlNIZnUxd2h1cStxWXhKMjZHZjh6WGdqMU1kQWVpQUxBdjkK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXkgNkMxOTdBRjM5NUUzMDczQQpSV1E2QitPVjgzb1piQXgyQU1UWjQ1VVJLKy9oSHZhYmRud2MzaFlQb0JVMGNyQldmNnRzT1BKSAo=",
       "endpoints": [
         "https://github.com/RSaches/printcontrol/releases/latest/download/latest.json"
       ]
