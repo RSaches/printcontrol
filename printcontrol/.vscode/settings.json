@@ -1,0 +1,19 @@
+{
+  "cSpell.words": [
+    "tauri",
+    "printcontrol",
+    "sqlx",
+    "chrono",
+    "tokio",
+    "serde",
+    "thiserror",
+    "tracing",
+    "winspool",
+    "printers",
+    "reqwest",
+    "upsert",
+    "recharts",
+    "zustand",
+    "sonner"
+  ]
+}
