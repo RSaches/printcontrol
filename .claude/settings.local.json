@@ -115,7 +115,22 @@
       "Bash(git check-ignore:*)",
       "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(''''version no tag v0.2.5:'''', d[''''version'''']\\)\")",
       "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(''''version no tag v0.2.4:'''', d[''''version'''']\\)\")",
-      "Bash(python3 -c \"import json; d=json.load\\(open\\(''src-tauri/tauri.conf.json''\\)\\); print\\(''version:'', d[''version'']\\); print\\(''targets:'', d[''bundle''][''targets'']\\)\")"
+      "Bash(python3 -c \"import json; d=json.load\\(open\\(''src-tauri/tauri.conf.json''\\)\\); print\\(''version:'', d[''version'']\\); print\\(''targets:'', d[''bundle''][''targets'']\\)\")",
+      "WebFetch(domain:www.anavem.com)",
+      "WebFetch(domain:use-the-index-luke.com)",
+      "WebFetch(domain:jeffpar.github.io)",
+      "WebFetch(domain:www.papercut.com)",
+      "WebFetch(domain:eventlogxp.com)",
+      "WebFetch(domain:insiderthreatmatrix.org)",
+      "WebFetch(domain:powershell.one)",
+      "Bash(gh api:*)",
+      "Bash(python3 -c \"import sys,json,base64; d=json.load\\(sys.stdin\\); print\\(base64.b64decode\\(d[''''content'''']\\).decode\\(\\)\\)\")",
+      "Bash(curl -s https://raw.githubusercontent.com/talesluna/rust-printers/master/src/lib.rs)",
+      "Bash(curl -s https://raw.githubusercontent.com/talesluna/rust-printers/master/src/common/base/printer.rs)",
+      "Bash(curl -s https://raw.githubusercontent.com/talesluna/rust-printers/master/src/windows/winspool/info.rs)",
+      "Bash(python3 -c \"import sys,json; [print\\(f[''''path'''']\\) for f in json.load\\(sys.stdin\\)]\")",
+      "Bash(curl:*)",
+      "Bash(cargo test:*)"
     ]
   }
 }

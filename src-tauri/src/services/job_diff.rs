@@ -16,21 +16,48 @@ pub fn detect_removed_jobs(
 
 /// Decide se um job que desapareceu da fila ativa deve ser marcado como FAILED.
 ///
-/// `get_active_jobs()` retorna apenas PENDING / PROCESSING / HELD.
-/// Quando um job CONCLUI com sucesso, CUPS o remove da fila ativa sem que
-/// o vejamos em estado COMPLETED — ele simplesmente some.
+/// O comportamento é diferente por plataforma porque o spooler do Windows e o
+/// CUPS tratam o ciclo de vida dos jobs de forma distinta:
 ///
-/// Regra:
+/// ## Linux / CUPS
+/// O CUPS mantém o job visível como PROCESSING até a conclusão física.
+/// Se um job PENDING desaparece, foi cancelado antes de imprimir → FAILED.
+///
+/// Regra CUPS:
 /// - PRINTING desapareceu → COMPLETED (CUPS concluiu e removeu da fila ativa)
-/// - PENDING desapareceu  → FAILED    (foi cancelado antes de imprimir)
-/// - FAILED desapareceu   → COMPLETED (foi retomado após erro e concluiu)
-/// - COMPLETED desapareceu→ já terminal, não faz nada
+/// - PENDING desapareceu  → FAILED    (cancelado antes de imprimir)
+/// - FAILED desapareceu   → COMPLETED (retomado após erro e concluiu)
+/// - COMPLETED desapareceu→ já terminal, sem ação
 ///
-/// Erros durante a impressão (papel faltando, offline) são capturados ANTES
-/// pelo `detect_changed_jobs` via transição PRINTING → FAILED (CUPS STOPPED/HELD).
+/// ## Windows Spooler
+/// O Spooler remove o job da fila assim que os dados são enviados ao driver,
+/// ainda durante a impressão física. Impressoras rápidas concluem dentro de
+/// um único ciclo de polling (≈2 s), então um job visto como PENDING ou
+/// PRINTING pode desaparecer antes do próximo ciclo sem que seja falha.
+/// Erros enquanto o job ainda está na fila (OFFLINE, PAPEROUT, BLOCKED) são
+/// capturados por `detect_changed_jobs` → notificamos o usuário via FAILED.
+/// Se o erro for resolvido e o job concluir, ele some → tratamos como COMPLETED.
+/// Cancelamentos explícitos (DELETING/DELETED) também são capturados antes
+/// do desaparecimento pelo `detect_changed_jobs`.
+///
+/// Regra Windows:
+/// - Qualquer job desapareceu → COMPLETED (nunca inferimos FAILED do sumiço)
 pub fn should_mark_as_failed(job: &PrintJob) -> bool {
-    use crate::domain::job_status::JobStatus;
-    matches!(job.status, JobStatus::Pending)
+    #[cfg(target_os = "windows")]
+    {
+        // No Windows, inferir FAILED a partir do sumiço gera falsos positivos:
+        // jobs rápidos e condições de erro recuperáveis seriam marcados como falhos
+        // mesmo tendo concluído com sucesso.
+        let _ = job;
+        return false;
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    {
+        // No CUPS, PENDING que some = cancelado antes de imprimir.
+        use crate::domain::job_status::JobStatus;
+        matches!(job.status, JobStatus::Pending)
+    }
 }
 
 /// Detecta jobs que ainda estão no spooler mas com status diferente do snapshot anterior.
@@ -107,10 +134,20 @@ mod tests {
     }
 
     #[test]
-    fn pending_job_disappearing_is_failed() {
-        // Job PENDING que some foi cancelado antes de imprimir.
+    #[cfg(not(target_os = "windows"))]
+    fn pending_job_disappearing_is_failed_on_linux() {
+        // CUPS: job PENDING que some foi cancelado antes de imprimir → FAILED.
         let job = mock_job("1", JobStatus::Pending);
         assert!(should_mark_as_failed(&job));
+    }
+
+    #[test]
+    #[cfg(target_os = "windows")]
+    fn pending_job_disappearing_is_completed_on_windows() {
+        // Windows: jobs rápidos concluem dentro de um ciclo de polling.
+        // PENDING que some = impresso com sucesso, não cancelado → COMPLETED.
+        let job = mock_job("1", JobStatus::Pending);
+        assert!(!should_mark_as_failed(&job));
     }
 
     #[test]

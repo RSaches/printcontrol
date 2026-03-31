@@ -30,7 +30,7 @@ impl MonitorWorker {
         tauri::async_runtime::spawn(async move {
             info!("Monitor de impressão iniciado");
 
-            let tracker = JobTracker::new(state.job_manager.clone());
+            let mut tracker = JobTracker::new(state.job_manager.clone());
             let mut previous_jobs: Vec<PrintJob> = vec![];
 
             // Reconcilia jobs ativos do banco com o estado atual do spooler
