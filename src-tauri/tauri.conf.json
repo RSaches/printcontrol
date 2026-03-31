@@ -44,11 +44,13 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "publisher": "PrintControl",
+    "publisher": "SanchesRaffael",
     "category": "Utility",
-    "copyright": "© 2026 PrintControl",
+    "copyright": "© 2026 SanchesRaffael — Licença MIT (Software Livre)",
+    "shortDescription": "Monitor de impressão gratuito e open-source.",
+    "longDescription": "PrintControl é um software livre projetado para monitorar atividades de impressão em tempo real, fornecendo estatísticas e histórico de forma simples e transparente.",
     "createUpdaterArtifacts": true,
-    "licenseFile": "./LICENSE.txt",
+    "licenseFile": "../LICENSE.txt",
     "resources": [
       "resources/**/*"
     ],

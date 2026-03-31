@@ -14,6 +14,12 @@ use tauri::{
 };
 use tracing::warn;
 
+// Icones embutidos para garantir funcionamento em produção
+const ICON_NORMAL: &[u8] = include_bytes!("../../icons/tray-normal.png");
+const ICON_PRINTING: &[u8] = include_bytes!("../../icons/tray-printing.png");
+const ICON_ERROR: &[u8] = include_bytes!("../../icons/tray-error.png");
+const ICON_PAUSED: &[u8] = include_bytes!("../../icons/tray-paused.png");
+
 // ── IDs fixos dos itens de menu ──────────────────────────────────────────────
 
 pub const TRAY_ID: &str = "main-tray";
@@ -559,26 +565,21 @@ pub fn update_icon_and_tooltip(
 }
 
 fn load_icon(app: &AppHandle, kind: TrayIconKind) -> Image<'static> {
-    let name = match kind {
-        TrayIconKind::Normal => "tray-normal.png",
-        TrayIconKind::Printing => "tray-printing.png",
-        TrayIconKind::Error => "tray-error.png",
-        TrayIconKind::Paused => "tray-paused.png",
+    let bytes = match kind {
+        TrayIconKind::Normal => ICON_NORMAL,
+        TrayIconKind::Printing => ICON_PRINTING,
+        TrayIconKind::Error => ICON_ERROR,
+        TrayIconKind::Paused => ICON_PAUSED,
     };
 
-    let icons_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("icons");
-    let path = icons_dir.join(name);
-
-    if path.exists() {
-        if let Ok(dyn_img) = image::open(&path) {
-            let rgba = dyn_img.to_rgba8();
-            let (width, height) = rgba.dimensions();
-            let bytes = rgba.into_raw();
-            return Image::new_owned(bytes, width, height);
-        }
+    if let Ok(dyn_img) = image::load_from_memory(bytes) {
+        let rgba = dyn_img.to_rgba8();
+        let (width, height) = rgba.dimensions();
+        let bytes = rgba.into_raw();
+        return Image::new_owned(bytes, width, height);
     }
 
-    warn!("Ícone de tray '{}' não encontrado, usando ícone padrão", name);
+    warn!("Ícone de tray não pôde ser carregado da memória, usando ícone padrão");
     // Converte o ícone padrão (referência) para Image<'static> via new_owned
     let default = app.default_window_icon().unwrap();
     Image::new_owned(

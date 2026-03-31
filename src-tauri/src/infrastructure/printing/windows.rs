@@ -10,6 +10,7 @@ use chrono::Utc;
 use printers::common::base::job::PrinterJobState;
 use printers::common::base::printer::PrinterState;
 use std::collections::HashMap;
+use std::os::windows::process::CommandExt;
 use std::process::Command;
 use std::time::UNIX_EPOCH;
 
@@ -33,6 +34,7 @@ fn fetch_usernames_windows() -> HashMap<u64, String> {
 
     let output = Command::new("powershell")
         .args(["-NoProfile", "-NonInteractive", "-Command", script])
+        .creation_flags(0x08000000) // CREATE_NO_WINDOW
         .output();
 
     let output = match output {
