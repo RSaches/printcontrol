@@ -1,5 +1,6 @@
 // src-tauri/src/workers/monitor.rs
 use crate::app::events::{EVENT_JOB_FAILED, EVENT_JOB_NEW, EVENT_JOB_UPDATE, EVENT_MONITOR_ERROR};
+use crate::app::tray;
 use crate::app::state::AppState;
 use crate::domain::job::PrintJob;
 use crate::services::job_tracker::JobTracker;
@@ -117,6 +118,15 @@ impl MonitorWorker {
                                     }
                                     app_handle.emit(EVENT_JOB_UPDATE, job).ok();
                                     app_handle.emit(EVENT_JOB_FAILED, job).ok();
+                                }
+                                // Atualiza o menu do tray sempre que houver mudança
+                                // de jobs (novo, falha ou conclusão) para que o
+                                // menu esteja fresco ao próximo clique direito.
+                                let tray_changed = !diff.new_jobs.is_empty()
+                                    || !diff.failed_jobs.is_empty()
+                                    || !diff.completed_jobs.is_empty();
+                                if tray_changed {
+                                    tray::rebuild_menu_async(&app_handle).await;
                                 }
                             }
                             Err(e) => {

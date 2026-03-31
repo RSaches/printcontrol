@@ -90,29 +90,37 @@ pub fn setup(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
                 handle_menu_event(app, event.id.as_ref(), &handles);
             }
         })
-        .on_tray_icon_event(|tray: &tauri::tray::TrayIcon, event: TrayIconEvent| match event {
-            // Clique esquerdo → mostrar/focar janela principal
-            TrayIconEvent::Click {
+        .on_tray_icon_event(|tray: &tauri::tray::TrayIcon, event: TrayIconEvent| {
+            // Clique esquerdo → mostrar/focar janela principal.
+            // Clique direito NÃO é tratado aqui: o OS exibe o menu contextual
+            // automaticamente quando há um menu definido. Se interceptarmos o
+            // evento e dispararmos rebuild_menu_async, o menu já está sendo
+            // aberto pelo sistema antes do rebuild terminar, resultando em menu
+            // vazio ou desatualizado. O menu é mantido fresco pelo refresh
+            // periódico iniciado abaixo.
+            if let TrayIconEvent::Click {
                 button: MouseButton::Left,
                 button_state: MouseButtonState::Up,
                 ..
-            } => {
+            } = event
+            {
                 show_main_window(tray.app_handle());
             }
-            // Clique direito → reconstruir menu com dados frescos antes de exibir
-            TrayIconEvent::Click {
-                button: MouseButton::Right,
-                button_state: MouseButtonState::Up,
-                ..
-            } => {
-                let app = tray.app_handle().clone();
-                tauri::async_runtime::spawn(async move {
-                    rebuild_menu_async(&app).await;
-                });
-            }
-            _ => {}
         })
         .build(app)?;
+
+    // Refresh periódico do menu: atualiza stats e impressoras a cada 30 s.
+    // Garante que o menu esteja sempre fresco independentemente de clique.
+    let refresh_handle = app.handle().clone();
+    tauri::async_runtime::spawn(async move {
+        let mut interval = tokio::time::interval(std::time::Duration::from_secs(30));
+        // Ignora o tick imediato — o rebuild de boot (em lib.rs) já cuida disso.
+        interval.tick().await;
+        loop {
+            interval.tick().await;
+            rebuild_menu_async(&refresh_handle).await;
+        }
+    });
 
     Ok(())
 }
