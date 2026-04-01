@@ -22,6 +22,16 @@ export interface Printer {
   location: string | null;
 }
 
+export interface PrinterHealthScore {
+  printer_name:   string;
+  score:          number | null;   // 0-100, null = dados insuficientes
+  grade:          string;          // "A" | "B" | "C" | "D" | "F" | "—"
+  total_30d:      number;
+  completed_30d:  number;
+  failed_30d:     number;
+  active_jobs:    number;
+}
+
 export interface PrinterStatus {
   printer_name: string;
   is_online: boolean;

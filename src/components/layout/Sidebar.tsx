@@ -8,6 +8,7 @@ import {
   Settings2,
   PrinterCheck,
   Activity,
+  ScrollText,
 } from "lucide-react";
 import {
   Tooltip,
@@ -25,10 +26,11 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { to: "/jobs",      label: "Jobs",           description: "Histórico de impressões",  icon: LayoutList },
-  { to: "/printers",  label: "Impressoras",    description: "Status das impressoras",    icon: Printer    },
-  { to: "/reports",   label: "Relatórios",     description: "Gráficos e estatísticas",  icon: BarChart3  },
-  { to: "/settings",  label: "Configurações",  description: "Ajustes do aplicativo",    icon: Settings2  },
+  { to: "/jobs",         label: "Jobs",           description: "Histórico de impressões",   icon: LayoutList },
+  { to: "/printers",     label: "Impressoras",    description: "Status das impressoras",     icon: Printer    },
+  { to: "/reports",      label: "Relatórios",     description: "Gráficos e estatísticas",   icon: BarChart3  },
+  { to: "/monitor-log",  label: "Log do Monitor", description: "Erros do worker de coleta", icon: ScrollText },
+  { to: "/settings",     label: "Configurações",  description: "Ajustes do aplicativo",     icon: Settings2  },
 ];
 
 function NavItemLink({ to, label, description, icon: Icon }: NavItem) {

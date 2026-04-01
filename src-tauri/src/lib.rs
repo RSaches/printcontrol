@@ -9,6 +9,7 @@ mod workers;
 use app::commands;
 use app::state::AppState;
 use infrastructure::storage::sqlite::create_pool;
+use services::monitor_error_manager::MonitorErrorManager;
 use services::settings_manager::SettingsManager;
 use std::sync::Arc;
 use tauri::Manager;
@@ -59,6 +60,10 @@ pub fn run() {
                     SettingsManager::new(pool.clone())
                 );
 
+                let monitor_error_manager = Arc::new(
+                    MonitorErrorManager::new(pool.clone())
+                );
+
                 let auto_start = settings_manager
                     .get_all()
                     .await
@@ -69,6 +74,7 @@ pub fn run() {
                     printing_adapter: adapter,
                     job_manager,
                     settings_manager: settings_manager.clone(),
+                    monitor_error_manager,
                     db_path,
                 });
 
@@ -121,6 +127,9 @@ pub fn run() {
             commands::reset_settings,
             commands::clear_history,
             commands::get_db_path,
+            commands::get_monitor_errors,
+            commands::clear_monitor_errors,
+            commands::get_printer_health_scores,
         ])
         .run(tauri::generate_context!())
         .expect("Erro ao executar aplicacao PrintControl");

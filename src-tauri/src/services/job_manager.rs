@@ -18,6 +18,21 @@ pub struct JobStats {
     pub failed: i64,
 }
 
+/// Score de saúde calculado por impressora com base nos últimos 30 dias.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PrinterHealthScore {
+    pub printer_name:     String,
+    /// Pontuação 0–100. `None` se não há dados suficientes (< 3 jobs).
+    pub score:            Option<u8>,
+    /// "A" | "B" | "C" | "D" | "F" | "—"
+    pub grade:            String,
+    pub total_30d:        i64,
+    pub completed_30d:    i64,
+    pub failed_30d:       i64,
+    /// Jobs ainda em PENDING/PRINTING (potencialmente travados).
+    pub active_jobs:      i64,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PaginatedJobs {
     pub jobs: Vec<PrintJob>,
@@ -68,6 +83,8 @@ impl JobManager {
         per_page: i64,
         status: Option<&str>,
         search: Option<&str>,
+        date_from: Option<&str>,
+        date_to: Option<&str>,
     ) -> Result<PaginatedJobs, AppError> {
         let page = page.max(1);
         let per_page = per_page.clamp(1, 500);
@@ -81,6 +98,8 @@ impl JobManager {
                 "(document_name LIKE ? OR user_name LIKE ? OR printer_name LIKE ?)"
             );
         }
+        if date_from.is_some() { where_parts.push("created_at >= ?"); }
+        if date_to.is_some()   { where_parts.push("created_at < ?"); }
         let where_clause = if where_parts.is_empty() {
             String::new()
         } else {
@@ -89,14 +108,23 @@ impl JobManager {
 
         // Pré-computa o LIKE para evitar múltiplos format! dentro dos binds.
         let search_like = search.map(|s| format!("%{}%", s));
+        // date_to is inclusive for the day: advance by 1 day
+        let date_to_exclusive = date_to.map(|d| {
+            // d is "YYYY-MM-DD"; add one day naively
+            let naive = chrono::NaiveDate::parse_from_str(d, "%Y-%m-%d")
+                .ok()
+                .and_then(|nd| nd.succ_opt())
+                .map(|nd| nd.format("%Y-%m-%d").to_string());
+            naive.unwrap_or_else(|| d.to_string())
+        });
 
         // — COUNT —
         let count_sql = format!("SELECT COUNT(*) FROM jobs {}", where_clause);
         let mut count_q = sqlx::query_scalar::<_, i64>(&count_sql);
-        if let Some(s) = status       { count_q = count_q.bind(s); }
-        if let Some(ref l) = search_like {
-            count_q = count_q.bind(l).bind(l).bind(l);
-        }
+        if let Some(s) = status            { count_q = count_q.bind(s); }
+        if let Some(ref l) = search_like   { count_q = count_q.bind(l).bind(l).bind(l); }
+        if let Some(f) = date_from         { count_q = count_q.bind(f); }
+        if let Some(ref t) = date_to_exclusive { count_q = count_q.bind(t.as_str()); }
         let total: i64 = count_q
             .fetch_one(&self.pool)
             .await
@@ -112,10 +140,10 @@ impl JobManager {
             where_clause
         );
         let mut data_q = sqlx::query(&data_sql);
-        if let Some(s) = status       { data_q = data_q.bind(s); }
-        if let Some(ref l) = search_like {
-            data_q = data_q.bind(l).bind(l).bind(l);
-        }
+        if let Some(s) = status            { data_q = data_q.bind(s); }
+        if let Some(ref l) = search_like   { data_q = data_q.bind(l).bind(l).bind(l); }
+        if let Some(f) = date_from         { data_q = data_q.bind(f); }
+        if let Some(ref t) = date_to_exclusive { data_q = data_q.bind(t.as_str()); }
         let rows = data_q
             .bind(per_page)
             .bind(offset)
@@ -359,6 +387,102 @@ impl JobManager {
     }
 
     /// Reconcilia jobs PENDING/PRINTING no DB com o spooler ao reiniciar.
+    /// Calcula o score de saúde para cada impressora com base nos últimos 30 dias.
+    ///
+    /// Fórmula (0–100):
+    ///   - Taxa de sucesso  (0–60): completed / (completed + failed) × 60
+    ///   - Atividade 7d     (0–20): >5 jobs concluídos → 20 | 1-5 → 15 | 0 → 0
+    ///   - Jobs travados    (0–20): 0 ativos → 20 | 1 ativo → 10 | 2+ → 0
+    ///
+    /// Mínimo de 3 jobs para emitir score (menos dados → retorna None).
+    pub async fn get_health_scores(&self) -> Result<Vec<PrinterHealthScore>, AppError> {
+        let rows = sqlx::query(
+            r#"
+            SELECT
+                printer_name,
+                COUNT(*) as total_30d,
+                SUM(CASE WHEN status = 'COMPLETED' THEN 1 ELSE 0 END) as completed_30d,
+                SUM(CASE WHEN status = 'FAILED'    THEN 1 ELSE 0 END) as failed_30d,
+                SUM(CASE WHEN status IN ('PENDING','PRINTING') THEN 1 ELSE 0 END) as active_jobs,
+                SUM(CASE
+                    WHEN status = 'COMPLETED'
+                     AND created_at >= datetime('now', '-7 days')
+                    THEN 1 ELSE 0
+                END) as completed_7d
+            FROM jobs
+            WHERE created_at >= datetime('now', '-30 days')
+            GROUP BY printer_name
+            ORDER BY printer_name
+            "#,
+        )
+        .fetch_all(&self.pool)
+        .await
+        .map_err(AppError::from)?;
+
+        use sqlx::Row;
+        let scores = rows
+            .into_iter()
+            .map(|r| {
+                let printer_name: String = r.get("printer_name");
+                let total_30d:    i64    = r.get("total_30d");
+                let completed_30d:i64    = r.get("completed_30d");
+                let failed_30d:   i64    = r.get("failed_30d");
+                let active_jobs:  i64    = r.get("active_jobs");
+                let completed_7d: i64    = r.get("completed_7d");
+
+                let (score, grade) = if total_30d < 3 {
+                    // Dados insuficientes
+                    (None, "—".to_string())
+                } else {
+                    let decisive = completed_30d + failed_30d;
+                    let success_score: f64 = if decisive == 0 {
+                        30.0 // sem jobs terminais → neutro
+                    } else {
+                        (completed_30d as f64 / decisive as f64) * 60.0
+                    };
+
+                    let activity_score: f64 = if completed_7d > 5 {
+                        20.0
+                    } else if completed_7d > 0 {
+                        15.0
+                    } else {
+                        0.0
+                    };
+
+                    let stuck_score: f64 = if active_jobs == 0 {
+                        20.0
+                    } else if active_jobs == 1 {
+                        10.0
+                    } else {
+                        0.0
+                    };
+
+                    let total = (success_score + activity_score + stuck_score).round() as u8;
+                    let g = match total {
+                        90..=100 => "A",
+                        75..=89  => "B",
+                        60..=74  => "C",
+                        40..=59  => "D",
+                        _        => "F",
+                    };
+                    (Some(total), g.to_string())
+                };
+
+                PrinterHealthScore {
+                    printer_name,
+                    score,
+                    grade,
+                    total_30d,
+                    completed_30d,
+                    failed_30d,
+                    active_jobs,
+                }
+            })
+            .collect();
+
+        Ok(scores)
+    }
+
     pub async fn get_active_jobs(&self) -> Result<Vec<PrintJob>, AppError> {
         sqlx::query_as!(
             PrintJob,
@@ -545,7 +669,7 @@ mod tests {
             mgr.upsert(&mock_job(&format!("p{}", i), JobStatus::Completed, &ts)).await.unwrap();
         }
 
-        let result = mgr.get_paginated(1, 2, None, None).await.unwrap();
+        let result = mgr.get_paginated(1, 2, None, None, None, None).await.unwrap();
         assert_eq!(result.total, 5);
         assert_eq!(result.jobs.len(), 2);
         assert_eq!(result.page, 1);
@@ -559,7 +683,7 @@ mod tests {
         mgr.upsert(&mock_job("f2", JobStatus::Failed,    "2026-01-02T00:00:00+00:00")).await.unwrap();
         mgr.upsert(&mock_job("f3", JobStatus::Completed, "2026-01-03T00:00:00+00:00")).await.unwrap();
 
-        let result = mgr.get_paginated(1, 10, Some("FAILED"), None).await.unwrap();
+        let result = mgr.get_paginated(1, 10, Some("FAILED"), None, None, None).await.unwrap();
         assert_eq!(result.total, 2);
         assert!(result.jobs.iter().all(|j| j.status == JobStatus::Failed));
     }
@@ -576,7 +700,7 @@ mod tests {
         job2.document_name = "nota_fiscal.pdf".to_string();
         mgr.upsert(&job2).await.unwrap();
 
-        let result = mgr.get_paginated(1, 10, None, Some("relatorio")).await.unwrap();
+        let result = mgr.get_paginated(1, 10, None, Some("relatorio"), None, None).await.unwrap();
         assert_eq!(result.total, 1);
         assert_eq!(result.jobs[0].document_name, "relatorio_anual.pdf");
     }

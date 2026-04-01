@@ -3,7 +3,8 @@ use crate::app::state::AppState;
 use crate::domain::job::PrintJob;
 use crate::domain::printer::Printer;
 use crate::domain::settings::AppSettings;
-use crate::services::job_manager::{JobStats, PaginatedJobs};
+use crate::services::job_manager::{JobStats, PaginatedJobs, PrinterHealthScore};
+use crate::services::monitor_error_manager::PaginatedErrors;
 use std::sync::Arc;
 use tauri::State;
 
@@ -14,7 +15,7 @@ pub async fn get_jobs(
     state.job_manager.get_all().await.map_err(|e| e.to_string())
 }
 
-/// Retorna jobs paginados com filtros opcionais de status e busca textual.
+/// Retorna jobs paginados com filtros opcionais de status, busca textual e intervalo de datas.
 #[tauri::command]
 pub async fn get_jobs_paginated(
     state: State<'_, Arc<AppState>>,
@@ -22,6 +23,8 @@ pub async fn get_jobs_paginated(
     per_page: i64,
     status: Option<String>,
     search: Option<String>,
+    date_from: Option<String>,
+    date_to: Option<String>,
 ) -> Result<PaginatedJobs, String> {
     state
         .job_manager
@@ -30,6 +33,8 @@ pub async fn get_jobs_paginated(
             per_page,
             status.as_deref(),
             search.as_deref(),
+            date_from.as_deref(),
+            date_to.as_deref(),
         )
         .await
         .map_err(|e| e.to_string())
@@ -123,4 +128,42 @@ pub async fn get_db_path(
     state: State<'_, Arc<AppState>>,
 ) -> Result<String, String> {
     Ok(state.db_path.clone())
+}
+
+/// Retorna erros do monitor paginados, mais recentes primeiro.
+#[tauri::command]
+pub async fn get_monitor_errors(
+    state: State<'_, Arc<AppState>>,
+    page: i64,
+    per_page: i64,
+) -> Result<PaginatedErrors, String> {
+    state
+        .monitor_error_manager
+        .get_paginated(page, per_page)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// Retorna o score de saúde calculado para cada impressora (últimos 30 dias).
+#[tauri::command]
+pub async fn get_printer_health_scores(
+    state: State<'_, Arc<AppState>>,
+) -> Result<Vec<PrinterHealthScore>, String> {
+    state
+        .job_manager
+        .get_health_scores()
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// Remove todos os erros do log do monitor.
+#[tauri::command]
+pub async fn clear_monitor_errors(
+    state: State<'_, Arc<AppState>>,
+) -> Result<i64, String> {
+    state
+        .monitor_error_manager
+        .clear_all()
+        .await
+        .map_err(|e| e.to_string())
 }

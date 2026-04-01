@@ -130,21 +130,25 @@ impl MonitorWorker {
                                 }
                             }
                             Err(e) => {
-                                error!("Erro ao processar diff: {}", e);
+                                let msg = e.to_string();
+                                error!("Erro ao processar diff: {}", msg);
+                                state.monitor_error_manager.insert(&msg).await.ok();
                                 if desktop_notif && notify_error {
-                                    notify_monitor_error(&app_handle, &e.to_string());
+                                    notify_monitor_error(&app_handle, &msg);
                                 }
-                                app_handle.emit(EVENT_MONITOR_ERROR, e.to_string()).ok();
+                                app_handle.emit(EVENT_MONITOR_ERROR, msg).ok();
                             }
                         }
                         previous_jobs = current_jobs;
                     }
                     Err(e) => {
-                        error!("Erro ao listar jobs do spooler: {}", e);
+                        let msg = e.to_string();
+                        error!("Erro ao listar jobs do spooler: {}", msg);
+                        state.monitor_error_manager.insert(&msg).await.ok();
                         if desktop_notif && notify_error {
-                            notify_monitor_error(&app_handle, &e.to_string());
+                            notify_monitor_error(&app_handle, &msg);
                         }
-                        app_handle.emit(EVENT_MONITOR_ERROR, e.to_string()).ok();
+                        app_handle.emit(EVENT_MONITOR_ERROR, msg).ok();
                     }
                 }
 

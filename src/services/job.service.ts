@@ -19,12 +19,16 @@ export const JobService = {
     perPage: number,
     status?: string,
     search?: string,
+    dateFrom?: string | null,
+    dateTo?: string | null,
   ) =>
     tauriInvoke<PaginatedJobs>("get_jobs_paginated", {
       page,
       perPage,
       status: status && status !== "all" ? status : null,
       search: search?.trim() || null,
+      dateFrom: dateFrom || null,
+      dateTo: dateTo || null,
     }),
 
   getByPeriod: (from: string, to: string) =>

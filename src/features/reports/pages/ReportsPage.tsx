@@ -18,7 +18,7 @@ import {
 import { format, subDays, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ReportService } from "../../../services/report.service";
-import { FileText, CheckCircle2, XCircle, Printer, User, Layers, Activity } from "lucide-react";
+import { FileText, CheckCircle2, XCircle, Printer, User, Layers, Activity, Flame } from "lucide-react";
 import type { PrintJob } from "../../../types";
 
 const STATUS_COLORS: Record<string, { light: string; dark: string }> = {
@@ -92,6 +92,42 @@ function buildUserStats(jobs: PrintJob[]) {
     .slice(0, 5);
 }
 
+const DAYS_LABEL = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+
+function buildHeatmap(jobs: PrintJob[]): number[][] {
+  // grid[dayOfWeek][hour] = count
+  const grid: number[][] = Array.from({ length: 7 }, () => new Array(24).fill(0));
+  for (const job of jobs) {
+    const d = new Date(job.created_at);
+    grid[d.getDay()][d.getHours()]++;
+  }
+  return grid;
+}
+
+interface HeatmapCellProps {
+  count: number;
+  max: number;
+  day: string;
+  hour: number;
+}
+
+function HeatmapCell({ count, max, day, hour }: HeatmapCellProps) {
+  const intensity = max === 0 ? 0 : count / max;
+  const opacity = count === 0 ? 0.06 : 0.15 + intensity * 0.85;
+  const label = `${day} ${String(hour).padStart(2, "0")}h — ${count} job${count !== 1 ? "s" : ""}`;
+
+  return (
+    <div
+      title={label}
+      className="rounded-sm cursor-default transition-transform hover:scale-125 hover:z-10 relative"
+      style={{
+        background: `hsl(var(--status-printing-fg) / ${opacity})`,
+        aspectRatio: "1",
+      }}
+    />
+  );
+}
+
 // --- Dashboard Component ---
 
 export function ReportsPage() {
@@ -114,11 +150,13 @@ export function ReportsPage() {
   });
 
   // Derived Stats for the selected period
-  const { dailyStats, printerStats, userStats, periodKPIs } = useMemo(() => {
+  const { dailyStats, printerStats, userStats, periodKPIs, heatmap, heatmapMax } = useMemo(() => {
     const daily = buildDailyStats(jobsInPeriod, periodDays);
     const printers = buildPrinterStats(jobsInPeriod);
     const users = buildUserStats(jobsInPeriod);
-    
+    const hm = buildHeatmap(jobsInPeriod);
+    const max = Math.max(1, ...hm.flat());
+
     const totalJobs = jobsInPeriod.length;
     const totalPages = jobsInPeriod.reduce((acc, job) => acc + (job.pages || 0), 0);
     const failedJobs = jobsInPeriod.filter(j => j.status === "FAILED").length;
@@ -128,6 +166,8 @@ export function ReportsPage() {
       dailyStats: daily,
       printerStats: printers,
       userStats: users,
+      heatmap: hm,
+      heatmapMax: max,
       periodKPIs: {
         total_jobs: totalJobs,
         total_pages: totalPages,
@@ -355,6 +395,67 @@ export function ReportsPage() {
           </ResponsiveContainer>
         </div>
 
+      </div>
+
+      {/* Heatmap de Atividade */}
+      <div className="rounded-xl border bg-card p-5 shadow-sm space-y-4">
+        <h2 className="text-sm font-semibold flex items-center gap-2">
+          <Flame className="w-4 h-4 text-orange-500" />
+          Heatmap de Atividade
+          <span className="text-xs text-muted-foreground font-normal ml-1">
+            — dia da semana × hora do dia
+          </span>
+        </h2>
+
+        {/* Eixo de horas */}
+        <div className="overflow-x-auto">
+          <div className="min-w-[600px]">
+            <div className="flex items-center gap-1 mb-1 pl-10">
+              {Array.from({ length: 24 }, (_, h) => (
+                <div
+                  key={h}
+                  className="flex-1 text-center text-[9px] text-muted-foreground/60 tabular-nums"
+                >
+                  {h % 3 === 0 ? `${String(h).padStart(2, "0")}h` : ""}
+                </div>
+              ))}
+            </div>
+
+            {/* Grid: 7 linhas (dias) × 24 colunas (horas) */}
+            <div className="space-y-1">
+              {heatmap.map((hourCounts, dayIdx) => (
+                <div key={dayIdx} className="flex items-center gap-1">
+                  <span className="w-9 shrink-0 text-[10px] text-muted-foreground text-right pr-1">
+                    {DAYS_LABEL[dayIdx]}
+                  </span>
+                  {hourCounts.map((count, hour) => (
+                    <div key={hour} className="flex-1">
+                      <HeatmapCell
+                        count={count}
+                        max={heatmapMax}
+                        day={DAYS_LABEL[dayIdx]}
+                        hour={hour}
+                      />
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+
+            {/* Legenda de intensidade */}
+            <div className="flex items-center gap-2 mt-3 justify-end">
+              <span className="text-[10px] text-muted-foreground">Menos</span>
+              {[0.06, 0.25, 0.45, 0.65, 1].map((op, i) => (
+                <div
+                  key={i}
+                  className="w-3 h-3 rounded-sm"
+                  style={{ background: `hsl(var(--status-printing-fg) / ${op})` }}
+                />
+              ))}
+              <span className="text-[10px] text-muted-foreground">Mais</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* PieChart - Distribuição Global (Sempre visível) */}

@@ -22,6 +22,8 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
+  CalendarDays,
+  X,
 } from "lucide-react";
 import type { JobStatus } from "../../../types";
 
@@ -45,11 +47,20 @@ export function JobsPage() {
   const { settings } = useSettingsStore();
   const perPage = settings?.items_per_page ?? 20;
 
+  const dateFrom = filters.dateRange[0]
+    ? filters.dateRange[0].toISOString().slice(0, 10)
+    : null;
+  const dateTo = filters.dateRange[1]
+    ? filters.dateRange[1].toISOString().slice(0, 10)
+    : null;
+
   const { data, isLoading } = useJobs({
     page,
     perPage,
     status: filters.status,
     search: filters.search,
+    dateFrom,
+    dateTo,
   });
 
   const { data: stats } = useQuery({
@@ -135,6 +146,45 @@ export function JobsPage() {
             ))}
           </SelectContent>
         </Select>
+
+        {/* Filtro de período */}
+        <div className="flex items-center gap-1.5">
+          <CalendarDays className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+          <Input
+            type="date"
+            value={dateFrom ?? ""}
+            onChange={(e) =>
+              setFilter("dateRange", [
+                e.target.value ? new Date(e.target.value + "T00:00:00") : null,
+                filters.dateRange[1],
+              ])
+            }
+            className="h-9 w-36 text-xs rounded-lg"
+          />
+          <span className="text-xs text-muted-foreground">até</span>
+          <Input
+            type="date"
+            value={dateTo ?? ""}
+            onChange={(e) =>
+              setFilter("dateRange", [
+                filters.dateRange[0],
+                e.target.value ? new Date(e.target.value + "T00:00:00") : null,
+              ])
+            }
+            className="h-9 w-36 text-xs rounded-lg"
+          />
+          {(filters.dateRange[0] || filters.dateRange[1]) && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 shrink-0"
+              onClick={() => setFilter("dateRange", [null, null])}
+              title="Limpar período"
+            >
+              <X className="w-3.5 h-3.5" />
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Tabela */}
