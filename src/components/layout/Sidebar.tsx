@@ -1,5 +1,7 @@
 // src/components/layout/Sidebar.tsx
+import { useEffect, useState } from "react";
 import { Link, useMatch, useResolvedPath } from "react-router-dom";
+import { getVersion } from "@tauri-apps/api/app";
 import { cn } from "../../utils/cn";
 import {
   Printer,
@@ -74,6 +76,11 @@ function NavItemLink({ to, label, description, icon: Icon }: NavItem) {
 }
 
 export function Sidebar() {
+  const [version, setVersion] = useState("");
+  useEffect(() => {
+    getVersion().then(setVersion).catch(() => {});
+  }, []);
+
   return (
     <TooltipProvider delayDuration={300}>
       <aside
@@ -114,9 +121,11 @@ export function Sidebar() {
             </div>
             <span className="text-[11px] text-sidebar-foreground/50">Monitor ativo</span>
           </div>
-          <p className="text-[10px] text-sidebar-foreground/30 text-center tracking-wide">
-            v0.1.0
-          </p>
+          {version && (
+            <p className="text-[10px] text-sidebar-foreground/30 text-center tracking-wide">
+              v{version}
+            </p>
+          )}
         </div>
       </aside>
     </TooltipProvider>

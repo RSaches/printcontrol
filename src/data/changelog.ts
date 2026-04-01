@@ -29,6 +29,60 @@ export interface VersionChangelog {
 }
 
 export const changelog: VersionChangelog[] = [
+  // ─── v0.3.0 ────────────────────────────────────────────────────────────────
+  {
+    version: '0.3.0',
+    releaseDate: '2026-04-01',
+    headline: 'Analytics avançados, saúde das impressoras e novos controles',
+    changes: [
+      {
+        icon: '🏥',
+        title: 'Score de saúde das impressoras',
+        description:
+          'Cada impressora agora exibe uma pontuação de 0 a 100 com grade A–F. ' +
+          'O score considera taxa de sucesso, atividade recente e jobs travados dos últimos 30 dias.',
+        gradient: 'from-emerald-500 to-teal-600',
+        // image: '/whats-new/v0.3.0-health.png',
+      },
+      {
+        icon: '🔥',
+        title: 'Heatmap de atividade',
+        description:
+          'Visualize os horários de pico de impressão em um grid dia × hora. ' +
+          'Identifique padrões e otimize a capacidade do parque de impressão.',
+        gradient: 'from-orange-500 to-red-500',
+        // image: '/whats-new/v0.3.0-heatmap.png',
+      },
+      {
+        icon: '📋',
+        title: 'Log persistente do monitor',
+        description:
+          'Erros do worker de monitoramento agora são gravados no banco de dados e ficam disponíveis ' +
+          'em uma página dedicada, mesmo após reiniciar o aplicativo.',
+        gradient: 'from-slate-500 to-slate-700',
+        // image: '/whats-new/v0.3.0-log.png',
+      },
+      {
+        icon: '📅',
+        title: 'Filtro por período nos jobs',
+        description:
+          'Filtre a lista de jobs por intervalo de datas com os novos campos "de" e "até". ' +
+          'O filtro age diretamente no banco de dados, sem impacto no desempenho.',
+        gradient: 'from-blue-500 to-indigo-600',
+        // image: '/whats-new/v0.3.0-datefilter.png',
+      },
+      {
+        icon: '🌙',
+        title: 'Toggle de tema no cabeçalho',
+        description:
+          'Alterne entre claro, escuro e sistema diretamente pelo botão no cabeçalho, ' +
+          'sem precisar acessar as configurações.',
+        gradient: 'from-violet-500 to-purple-600',
+        // image: '/whats-new/v0.3.0-theme.png',
+      },
+    ],
+  },
+
   // ─── v0.2.8 ────────────────────────────────────────────────────────────────
   {
     version: '0.2.8',
