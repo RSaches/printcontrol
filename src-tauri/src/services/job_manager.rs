@@ -9,7 +9,7 @@ pub struct JobManager {
     pool: SqlitePool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct JobStats {
     pub total: i64,
     pub pending: i64,
@@ -41,11 +41,6 @@ pub struct PaginatedJobs {
     pub per_page: i64,
 }
 
-impl Default for JobStats {
-    fn default() -> Self {
-        Self { total: 0, pending: 0, printing: 0, completed: 0, failed: 0 }
-    }
-}
 
 impl JobManager {
     pub fn new(pool: SqlitePool) -> Self {

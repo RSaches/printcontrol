@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../components/ui/select";
+import { format } from "date-fns";
 import {
   Search,
   ChevronLeft,
@@ -47,11 +48,14 @@ export function JobsPage() {
   const { settings } = useSettingsStore();
   const perPage = settings?.items_per_page ?? 20;
 
+  // Usa format() do date-fns para garantir que a data local seja enviada
+  // corretamente, sem deslocamento de fuso (toISOString retorna UTC e pode
+  // mudar o dia em timezones à frente de UTC).
   const dateFrom = filters.dateRange[0]
-    ? filters.dateRange[0].toISOString().slice(0, 10)
+    ? format(filters.dateRange[0], "yyyy-MM-dd")
     : null;
   const dateTo = filters.dateRange[1]
-    ? filters.dateRange[1].toISOString().slice(0, 10)
+    ? format(filters.dateRange[1], "yyyy-MM-dd")
     : null;
 
   const { data, isLoading } = useJobs({

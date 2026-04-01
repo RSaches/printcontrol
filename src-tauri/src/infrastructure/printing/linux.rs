@@ -90,7 +90,7 @@ impl PrintingAdapter for LinuxAdapter {
                     );
 
                     let user_name = usernames
-                        .get(&(j.id as u64))
+                        .get(&j.id)
                         .cloned()
                         .unwrap_or_else(|| String::from("unknown"));
 

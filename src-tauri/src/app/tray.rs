@@ -1,7 +1,6 @@
 // src-tauri/src/app/tray.rs
 
 use crate::app::state::AppState;
-use crate::domain::job::PrintJob;
 use crate::domain::printer::Printer;
 use crate::services::job_manager::JobStats;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -30,7 +29,6 @@ const ID_SECTION_STATS: &str = "section_stats";
 const ID_STAT_PRINTING: &str = "stat_printing";
 const ID_STAT_PENDING: &str = "stat_pending";
 const ID_STAT_FAILED: &str = "stat_failed";
-const ID_SECTION_RECENT: &str = "section_recent";
 const ID_SECTION_PRINTERS: &str = "section_printers";
 const ID_MONITOR_TOGGLE: &str = "monitor_toggle";
 const ID_OPEN_SETTINGS: &str = "open_settings";
@@ -384,8 +382,8 @@ fn build_full_menu(
         for (i, printer) in printers.iter().take(5).enumerate() {
             builder = builder.item(&MenuItem::with_id(
                 app,
-                &format!("printer_{}", i),
-                &format_printer_label(printer),
+                format!("printer_{}", i),
+                format_printer_label(printer),
                 true,
                 None::<&str>,
             )?);
@@ -598,29 +596,6 @@ fn load_icon(app: &AppHandle, kind: TrayIconKind) -> Image<'static> {
 }
 
 // ── Formatação ───────────────────────────────────────────────────────────────
-
-fn format_job_label(job: &PrintJob, is_en: bool) -> String {
-    let status_str = job.status.to_string();
-    let status = match status_str.as_str() {
-        "PRINTING" => if is_en { "[PRINTING]" } else { "[IMPRIMINDO]" },
-        "COMPLETED" => if is_en { "[COMPLETED]" } else { "[CONCLUÍDO]" },
-        "FAILED" => if is_en { "[FAILED]" } else { "[FALHOU]" },
-        "PENDING" => if is_en { "[PENDING]" } else { "[PENDENTE]" },
-        other => other,
-    };
-
-    let max = 26;
-    let name = if job.document_name.chars().count() > max {
-        format!(
-            "{}…",
-            job.document_name.chars().take(max - 1).collect::<String>()
-        )
-    } else {
-        job.document_name.clone()
-    };
-
-    format!("  {}  {}", name, status)
-}
 
 fn format_printer_label(printer: &Printer) -> String {
     let dot = if printer.is_online { "●" } else { "○" };

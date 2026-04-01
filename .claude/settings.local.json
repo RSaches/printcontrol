@@ -134,7 +134,10 @@
       "Bash(cat /home/sanches/Documentos/PrintControl/.github/workflows/*.yml)",
       "Bash(cargo generate-lockfile:*)",
       "Bash(grep -r \"update-available\\\\|updater\\\\|tauri.*update\" /home/sanches/Documentos/PrintControl/src -r --include=*.ts --include=*.tsx --include=*.vue --include=*.js -n)",
-      "Bash(grep -r \"getVersion\\\\|@tauri-apps/api\" /home/sanches/Documentos/PrintControl/src --include=*.ts --include=*.tsx -l 2)"
+      "Bash(grep -r \"getVersion\\\\|@tauri-apps/api\" /home/sanches/Documentos/PrintControl/src --include=*.ts --include=*.tsx -l 2)",
+      "Bash(npx eslint:*)",
+      "Bash(cargo clippy:*)",
+      "Bash(grep -v \"^$\")"
     ]
   }
 }

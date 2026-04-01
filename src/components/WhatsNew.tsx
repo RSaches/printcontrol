@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { X, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { useWhatsNew } from '../hooks/useWhatsNew';
-import type { VersionChangelog } from '../data/changelog';
+import type { VersionChangelog, ChangeEntry } from '../data/changelog';
 
 export function WhatsNew() {
   const { visible, entries, dismiss } = useWhatsNew();
@@ -125,7 +125,7 @@ function WhatsNewPanel({ entries, onDismiss }: PanelProps) {
           </div>
 
           <button
-            onClick={onDismiss}
+            onClick={isLast ? onDismiss : () => setVersionIndex((i) => i + 1)}
             className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 active:scale-95 text-white text-sm font-semibold transition-all"
           >
             {entries.length > 1 && !isLast ? 'Próximo →' : 'Entendido!'}
@@ -137,8 +137,6 @@ function WhatsNewPanel({ entries, onDismiss }: PanelProps) {
 }
 
 // ─── Card individual de melhoria ─────────────────────────────────────────────
-
-import type { ChangeEntry } from '../data/changelog';
 
 interface CardProps {
   change: ChangeEntry;

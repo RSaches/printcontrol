@@ -1,5 +1,5 @@
 // src/features/reports/pages/ReportsPage.tsx
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Area,
@@ -132,7 +132,18 @@ function HeatmapCell({ count, max, day, hour }: HeatmapCellProps) {
 
 export function ReportsPage() {
   const [periodDays, setPeriodDays] = useState(30);
-  const isDark = document.documentElement.classList.contains("dark");
+  const [isDark, setIsDark] = useState(
+    () => document.documentElement.classList.contains("dark")
+  );
+
+  // Reage ao toggle de tema sem precisar de prop-drilling
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    });
+    observer.observe(document.documentElement, { attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
 
   const to   = new Date().toISOString();
   const from = subDays(startOfDay(new Date()), periodDays).toISOString();

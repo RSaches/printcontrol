@@ -82,16 +82,4 @@ impl MonitorErrorManager {
             .map_err(AppError::from)?;
         Ok(result.rows_affected() as i64)
     }
-
-    /// Remove erros mais antigos que `days` dias.
-    pub async fn clear_older_than(&self, days: i64) -> Result<i64, AppError> {
-        let result = sqlx::query(
-            "DELETE FROM monitor_errors WHERE occurred_at < datetime('now', ? || ' days')"
-        )
-        .bind(format!("-{}", days))
-        .execute(&self.pool)
-        .await
-        .map_err(AppError::from)?;
-        Ok(result.rows_affected() as i64)
-    }
 }
