@@ -1,10 +1,12 @@
 // src/features/settings/pages/SettingsPage.tsx
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { getVersion } from "@tauri-apps/api/app";
 import { toast } from "sonner";
 import { AppSettings } from "../../../types";
 import { settingsService } from "../../../services/settings.service";
 import { useSettingsStore } from "../../../store/settingsStore";
+import { useWhatsNew } from "../../../hooks/useWhatsNew";
 import { Switch } from "../../../components/ui/switch";
 import {
   Select,
@@ -22,6 +24,8 @@ import {
   Palette,
   Info,
   RotateCcw,
+  Sparkles,
+  Mail,
 } from "lucide-react";
 
 function SectionCard({
@@ -72,7 +76,9 @@ export function SettingsPage() {
   const queryClient = useQueryClient();
   const { settings, fetch, update } = useSettingsStore();
   const [dbPath, setDbPath] = useState<string>("");
+  const [appVersion, setAppVersion] = useState<string>("");
   const [clearingDays, setClearingDays] = useState("90");
+  const { showAll: showWhatsNew } = useWhatsNew();
   const [clearing, setClearing] = useState(false);
   const [resetting, setResetting] = useState(false);
 
@@ -84,6 +90,7 @@ export function SettingsPage() {
   useEffect(() => {
     fetch();
     settingsService.getDbPath().then(setDbPath).catch(() => {});
+    getVersion().then(setAppVersion).catch(() => {});
   }, [fetch]);
 
   useEffect(() => {
@@ -384,16 +391,41 @@ export function SettingsPage() {
 
       {/* ── Sobre ── */}
       <SectionCard icon={Info} title="Sobre">
-        <SettingRow label="Aplicativo" description="PrintControl">
-          <span className="text-sm text-muted-foreground">v0.1.0</span>
+        <SettingRow label="Versão" description="Versão instalada do PrintControl">
+          <span className="text-sm font-medium text-muted-foreground">
+            {appVersion ? `v${appVersion}` : "—"}
+          </span>
         </SettingRow>
         <SettingRow label="Tecnologia" description="Tauri 2 + Rust + React">
           <span className="text-sm text-muted-foreground">
             {navigator.userAgent.includes("Linux") ? "Linux" : "Windows"}
           </span>
         </SettingRow>
-        <SettingRow label="Repositório" description="Código-fonte do projeto">
-          <span className="text-xs text-muted-foreground">PrintControl</span>
+        <SettingRow
+          label="Contato do desenvolvedor"
+          description="Dúvidas, sugestões ou suporte técnico."
+        >
+          <a
+            href="mailto:dev.sanchess@proton.me"
+            className="flex items-center gap-1.5 text-xs text-primary hover:underline"
+          >
+            <Mail className="w-3.5 h-3.5" />
+            dev.sanchess@proton.me
+          </a>
+        </SettingRow>
+        <SettingRow
+          label="O que há de novo"
+          description="Veja as melhorias da versão atual e anteriores."
+        >
+          <Button
+            size="sm"
+            variant="outline"
+            className="gap-1.5 text-xs"
+            onClick={showWhatsNew}
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            Ver novidades
+          </Button>
         </SettingRow>
       </SectionCard>
     </div>

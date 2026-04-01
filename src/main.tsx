@@ -8,6 +8,8 @@ import { ErrorBoundary } from "./components/shared/ErrorBoundary";
 import { UpdateBanner } from "./components/UpdateBanner";
 import { UpdateModal } from "./components/UpdateModal";
 import { UpdaterProvider } from "./hooks/useUpdaterContext";
+import { WhatsNew } from "./components/WhatsNew";
+import { WhatsNewProvider } from "./hooks/useWhatsNew";
 import { Titlebar } from "./components/layout/Titlebar";
 import "./index.css";
 
@@ -40,6 +42,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
+        <WhatsNewProvider>
         <UpdaterProvider>
           <div className="flex flex-col h-screen">
             <Titlebar />
@@ -49,7 +52,9 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
               <AppRouter />
             </div>
           </div>
+          <WhatsNew />
         </UpdaterProvider>
+        </WhatsNewProvider>
         <Toaster richColors position="bottom-right" />
       </QueryClientProvider>
     </ErrorBoundary>

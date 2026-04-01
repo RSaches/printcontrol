@@ -8,7 +8,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
   ArrowDown,
   ArrowUp,
@@ -26,6 +26,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../components/ui/select";
+import { TableContextMenu } from "../../../components/ui/TableContextMenu";
+import { exportToExcel, exportToPdf } from "../../../services/export.service";
 import { formatBytes, formatDate, formatPages } from "../../../utils/format";
 import { cn } from "../../../utils/cn";
 import type { PrintJob } from "../../../types";
@@ -109,8 +111,14 @@ interface JobsTableProps {
   isLoading: boolean;
 }
 
+interface ContextMenuState {
+  x: number;
+  y: number;
+}
+
 export function JobsTable({ data, isLoading }: JobsTableProps) {
   const [sorting, setSorting] = useState([{ id: "created_at", desc: true }]);
+  const [ctxMenu, setCtxMenu] = useState<ContextMenuState | null>(null);
 
   const table = useReactTable({
     data,
@@ -156,8 +164,64 @@ export function JobsTable({ data, isLoading }: JobsTableProps) {
     );
   }
 
+  const pageJobs = table.getRowModel().rows.map((r) => r.original);
+
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setCtxMenu({ x: e.clientX, y: e.clientY });
+  }, []);
+
+  const closeCtxMenu = useCallback(() => setCtxMenu(null), []);
+
+  const contextMenuGroups = [
+    {
+      heading: `Página atual (${pageJobs.length} job${pageJobs.length !== 1 ? 's' : ''})`,
+      actions: [
+        {
+          label: 'Exportar Excel',
+          sublabel: '.xlsx',
+          icon: 'excel' as const,
+          onClick: () => exportToExcel(pageJobs),
+        },
+        {
+          label: 'Exportar PDF',
+          sublabel: '.pdf',
+          icon: 'pdf' as const,
+          onClick: () => exportToPdf(pageJobs),
+        },
+      ],
+    },
+    {
+      heading: `Todos os resultados (${data.length} job${data.length !== 1 ? 's' : ''})`,
+      actions: [
+        {
+          label: 'Exportar Excel',
+          sublabel: '.xlsx',
+          icon: 'excel' as const,
+          onClick: () => exportToExcel(data),
+        },
+        {
+          label: 'Exportar PDF',
+          sublabel: '.pdf',
+          icon: 'pdf' as const,
+          onClick: () => exportToPdf(data),
+        },
+      ],
+    },
+  ];
+
   return (
     <div className="space-y-3">
+      {/* Menu de contexto (clique direito) */}
+      {ctxMenu && (
+        <TableContextMenu
+          x={ctxMenu.x}
+          y={ctxMenu.y}
+          groups={contextMenuGroups}
+          onClose={closeCtxMenu}
+        />
+      )}
+
       {/* Tabela */}
       <div className="rounded-xl border overflow-hidden">
         <table className="w-full text-sm">
@@ -186,7 +250,8 @@ export function JobsTable({ data, isLoading }: JobsTableProps) {
             {table.getRowModel().rows.map((row) => (
               <tr
                 key={row.id}
-                className="hover:bg-muted/30 transition-colors duration-100 group"
+                onContextMenu={handleContextMenu}
+                className="hover:bg-muted/30 transition-colors duration-100 group cursor-context-menu"
               >
                 {row.getVisibleCells().map((cell) => (
                   <td key={cell.id} className="px-4 py-3">
