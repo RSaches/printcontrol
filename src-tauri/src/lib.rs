@@ -130,6 +130,7 @@ pub fn run() {
             commands::get_monitor_errors,
             commands::clear_monitor_errors,
             commands::get_printer_health_scores,
+            commands::get_printer_format_stats,
         ])
         .run(tauri::generate_context!())
         .expect("Erro ao executar aplicacao PrintControl");

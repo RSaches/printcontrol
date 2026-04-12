@@ -19,6 +19,7 @@ export const JobService = {
     perPage: number,
     status?: string,
     search?: string,
+    printerName?: string | null,
     dateFrom?: string | null,
     dateTo?: string | null,
   ) =>
@@ -27,6 +28,7 @@ export const JobService = {
       perPage,
       status: status && status !== "all" ? status : null,
       search: search?.trim() || null,
+      printerName: printerName || null,
       dateFrom: dateFrom || null,
       dateTo: dateTo || null,
     }),

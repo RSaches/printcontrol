@@ -1,10 +1,12 @@
 // src/features/printers/pages/PrintersPage.tsx
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Printer, RefreshCw, MapPin, WifiOff } from "lucide-react";
+import { Printer, RefreshCw, MapPin, WifiOff, ChevronRight } from "lucide-react";
 import { PrinterService } from "../../../services/printer.service";
 import { Button } from "../../../components/ui/button";
+import { PrinterDetailModal } from "../components/PrinterDetailModal";
 import { cn } from "../../../utils/cn";
-import type { PrinterHealthScore } from "../../../types";
+import type { Printer as PrinterType, PrinterHealthScore } from "../../../types";
 
 // ─── Score helpers ─────────────────────────────────────────────────────────
 
@@ -25,7 +27,6 @@ function ScoreRing({ hs }: ScoreRingProps) {
   const s = GRADE_STYLES[hs.grade] ?? GRADE_STYLES["—"];
   const pct = hs.score ?? 0;
 
-  // SVG arc para o arco de progresso
   const R = 22;
   const circ = 2 * Math.PI * R;
   const dash = (pct / 100) * circ;
@@ -33,19 +34,8 @@ function ScoreRing({ hs }: ScoreRingProps) {
   return (
     <div className="flex flex-col items-center gap-1">
       <div className="relative w-14 h-14">
-        <svg
-          viewBox="0 0 56 56"
-          className="w-14 h-14 -rotate-90"
-          aria-hidden
-        >
-          {/* Track */}
-          <circle
-            cx="28" cy="28" r={R}
-            fill="none"
-            strokeWidth="5"
-            className="stroke-muted"
-          />
-          {/* Progress */}
+        <svg viewBox="0 0 56 56" className="w-14 h-14 -rotate-90" aria-hidden>
+          <circle cx="28" cy="28" r={R} fill="none" strokeWidth="5" className="stroke-muted" />
           {hs.score !== null && (
             <circle
               cx="28" cy="28" r={R}
@@ -64,14 +54,10 @@ function ScoreRing({ hs }: ScoreRingProps) {
             />
           )}
         </svg>
-        {/* Grade label no centro */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className={cn("text-lg font-bold leading-none", s.text)}>
-            {hs.grade}
-          </span>
+          <span className={cn("text-lg font-bold leading-none", s.text)}>{hs.grade}</span>
         </div>
       </div>
-      {/* Score numérico */}
       <span className="text-[10px] text-muted-foreground tabular-nums">
         {hs.score !== null ? `${hs.score}/100` : "—"}
       </span>
@@ -117,6 +103,8 @@ function StatPill({ label, value, variant = "default" }: StatPillProps) {
 // ─── Page ──────────────────────────────────────────────────────────────────
 
 export function PrintersPage() {
+  const [selectedPrinter, setSelectedPrinter] = useState<PrinterType | null>(null);
+
   const { data: printers = [], isLoading, refetch, isFetching } = useQuery({
     queryKey: ["printers"],
     queryFn: () => PrinterService.getAll(),
@@ -131,12 +119,15 @@ export function PrintersPage() {
     refetchInterval: 120_000,
   });
 
-  // Map por nome para lookup O(1)
   const scoreByName = new Map<string, PrinterHealthScore>(
     healthScores.map((s) => [s.printer_name, s])
   );
 
   const onlineCount = printers.filter((p) => p.is_online).length;
+
+  const selectedScore = selectedPrinter
+    ? (scoreByName.get(selectedPrinter.name) ?? null)
+    : null;
 
   return (
     <div className="p-5 space-y-5 page-enter">
@@ -147,7 +138,7 @@ export function PrintersPage() {
           <p className="text-xs text-muted-foreground mt-0.5">
             {printers.length === 0
               ? "Nenhuma impressora detectada"
-              : `${onlineCount} de ${printers.length} online`}
+              : `${onlineCount} de ${printers.length} online · clique em uma impressora para detalhes`}
           </p>
         </div>
         <Button
@@ -215,16 +206,19 @@ export function PrintersPage() {
             const gradeStyle = GRADE_STYLES[hs.grade] ?? GRADE_STYLES["—"];
 
             return (
-              <div
+              <button
                 key={printer.id}
+                type="button"
+                onClick={() => setSelectedPrinter(printer)}
                 className={cn(
-                  "rounded-xl border bg-card p-5 space-y-4 shadow-sm card-hover",
+                  "rounded-xl border bg-card p-5 space-y-4 shadow-sm card-hover text-left w-full",
+                  "transition-all duration-150 hover:border-primary/40 hover:shadow-md",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
                   !printer.is_online && "opacity-60"
                 )}
               >
                 {/* Linha superior: ícone + nome + status + score */}
                 <div className="flex items-start gap-3">
-                  {/* Ícone da impressora */}
                   <div
                     className={cn(
                       "w-10 h-10 rounded-lg flex items-center justify-center shrink-0",
@@ -244,7 +238,6 @@ export function PrintersPage() {
                     />
                   </div>
 
-                  {/* Nome + localização + status */}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold truncate" title={printer.name}>
                       {printer.name}
@@ -277,8 +270,10 @@ export function PrintersPage() {
                     </span>
                   </div>
 
-                  {/* Score Ring */}
-                  <ScoreRing hs={hs} />
+                  <div className="flex flex-col items-end gap-1">
+                    <ScoreRing hs={hs} />
+                    <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40" />
+                  </div>
                 </div>
 
                 {/* Rótulo do grade */}
@@ -292,7 +287,7 @@ export function PrintersPage() {
                 {/* Pills de stats */}
                 {hs.total_30d > 0 && (
                   <div className="flex gap-2 justify-between">
-                    <StatPill label="Total"     value={hs.total_30d}     variant="default" />
+                    <StatPill label="Total"      value={hs.total_30d}     variant="default" />
                     <StatPill label="Concluídos" value={hs.completed_30d} variant="success" />
                     <StatPill label="Falhas"     value={hs.failed_30d}    variant="danger"  />
                     <StatPill label="Ativos"     value={hs.active_jobs}   variant={hs.active_jobs > 1 ? "warning" : "default"} />
@@ -304,10 +299,20 @@ export function PrintersPage() {
                     Sem atividade nos últimos 30 dias
                   </p>
                 )}
-              </div>
+              </button>
             );
           })}
         </div>
+      )}
+
+      {/* Modal de detalhes */}
+      {selectedPrinter && (
+        <PrinterDetailModal
+          printer={selectedPrinter}
+          healthScore={selectedScore}
+          isOpen={!!selectedPrinter}
+          onClose={() => setSelectedPrinter(null)}
+        />
       )}
     </div>
   );

@@ -11,8 +11,17 @@ export interface PrintJob {
   status: JobStatus;
   pages: number | null;
   size_bytes: number | null;
+  /** Formato de papel reportado pelo spooler (ex: "A4", "A3", "Carta"). */
+  paper_format: string | null;
   created_at: string;
   updated_at: string;
+}
+
+/** Estatística de uso por formato de papel para uma impressora. */
+export interface PrinterFormatStat {
+  format: string;
+  job_count: number;
+  total_pages: number;
 }
 
 export interface Printer {

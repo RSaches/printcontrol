@@ -3,7 +3,7 @@ use crate::app::state::AppState;
 use crate::domain::job::PrintJob;
 use crate::domain::printer::Printer;
 use crate::domain::settings::AppSettings;
-use crate::services::job_manager::{JobStats, PaginatedJobs, PrinterHealthScore};
+use crate::services::job_manager::{JobStats, PaginatedJobs, PrinterFormatStat, PrinterHealthScore};
 use crate::services::monitor_error_manager::PaginatedErrors;
 use std::sync::Arc;
 use tauri::State;
@@ -15,7 +15,7 @@ pub async fn get_jobs(
     state.job_manager.get_all().await.map_err(|e| e.to_string())
 }
 
-/// Retorna jobs paginados com filtros opcionais de status, busca textual e intervalo de datas.
+/// Retorna jobs paginados com filtros opcionais de status, impressora, busca e datas.
 #[tauri::command]
 pub async fn get_jobs_paginated(
     state: State<'_, Arc<AppState>>,
@@ -23,6 +23,7 @@ pub async fn get_jobs_paginated(
     per_page: i64,
     status: Option<String>,
     search: Option<String>,
+    printer_name: Option<String>,
     date_from: Option<String>,
     date_to: Option<String>,
 ) -> Result<PaginatedJobs, String> {
@@ -33,9 +34,23 @@ pub async fn get_jobs_paginated(
             per_page,
             status.as_deref(),
             search.as_deref(),
+            printer_name.as_deref(),
             date_from.as_deref(),
             date_to.as_deref(),
         )
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// Retorna estatísticas de uso por formato de papel para uma impressora.
+#[tauri::command]
+pub async fn get_printer_format_stats(
+    state: State<'_, Arc<AppState>>,
+    printer_name: String,
+) -> Result<Vec<PrinterFormatStat>, String> {
+    state
+        .job_manager
+        .get_printer_format_stats(&printer_name)
         .await
         .map_err(|e| e.to_string())
 }

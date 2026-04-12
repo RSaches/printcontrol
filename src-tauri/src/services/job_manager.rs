@@ -5,6 +5,15 @@ use crate::domain::job_status::JobStatus;
 use serde::{Deserialize, Serialize};
 use sqlx::SqlitePool;
 
+/// Estatística de uso por formato de papel para uma impressora.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PrinterFormatStat {
+    /// Nome do formato (ex: "A4", "A3", "Carta", "Desconhecido").
+    pub format: String,
+    pub job_count: i64,
+    pub total_pages: i64,
+}
+
 pub struct JobManager {
     pool: SqlitePool,
 }
@@ -59,6 +68,7 @@ impl JobManager {
                 status as "status!: JobStatus",
                 pages,
                 size_bytes,
+                paper_format,
                 created_at as "created_at!",
                 updated_at as "updated_at!"
             FROM jobs
@@ -70,7 +80,7 @@ impl JobManager {
         .map_err(AppError::from)
     }
 
-    /// Retorna jobs com filtros opcionais de status e busca textual, paginados.
+    /// Retorna jobs com filtros opcionais de status, impressora, busca textual e intervalo de datas.
     /// Usa sqlx não-macro para permitir WHERE dinâmico.
     pub async fn get_paginated(
         &self,
@@ -78,6 +88,7 @@ impl JobManager {
         per_page: i64,
         status: Option<&str>,
         search: Option<&str>,
+        printer_name: Option<&str>,
         date_from: Option<&str>,
         date_to: Option<&str>,
     ) -> Result<PaginatedJobs, AppError> {
@@ -93,6 +104,7 @@ impl JobManager {
                 "(document_name LIKE ? OR user_name LIKE ? OR printer_name LIKE ?)"
             );
         }
+        if printer_name.is_some() { where_parts.push("printer_name = ?"); }
         if date_from.is_some() { where_parts.push("created_at >= ?"); }
         if date_to.is_some()   { where_parts.push("created_at < ?"); }
         let where_clause = if where_parts.is_empty() {
@@ -105,7 +117,6 @@ impl JobManager {
         let search_like = search.map(|s| format!("%{}%", s));
         // date_to is inclusive for the day: advance by 1 day
         let date_to_exclusive = date_to.map(|d| {
-            // d is "YYYY-MM-DD"; add one day naively
             let naive = chrono::NaiveDate::parse_from_str(d, "%Y-%m-%d")
                 .ok()
                 .and_then(|nd| nd.succ_opt())
@@ -116,9 +127,10 @@ impl JobManager {
         // — COUNT —
         let count_sql = format!("SELECT COUNT(*) FROM jobs {}", where_clause);
         let mut count_q = sqlx::query_scalar::<_, i64>(&count_sql);
-        if let Some(s) = status            { count_q = count_q.bind(s); }
-        if let Some(ref l) = search_like   { count_q = count_q.bind(l).bind(l).bind(l); }
-        if let Some(f) = date_from         { count_q = count_q.bind(f); }
+        if let Some(s) = status               { count_q = count_q.bind(s); }
+        if let Some(ref l) = search_like      { count_q = count_q.bind(l).bind(l).bind(l); }
+        if let Some(p) = printer_name         { count_q = count_q.bind(p); }
+        if let Some(f) = date_from            { count_q = count_q.bind(f); }
         if let Some(ref t) = date_to_exclusive { count_q = count_q.bind(t.as_str()); }
         let total: i64 = count_q
             .fetch_one(&self.pool)
@@ -128,16 +140,17 @@ impl JobManager {
         // — DATA —
         let data_sql = format!(
             r#"SELECT id, spooler_job_id, document_name, user_name, printer_name,
-                      status, pages, size_bytes, created_at, updated_at
+                      status, pages, size_bytes, paper_format, created_at, updated_at
                FROM jobs {}
                ORDER BY created_at DESC
                LIMIT ? OFFSET ?"#,
             where_clause
         );
         let mut data_q = sqlx::query(&data_sql);
-        if let Some(s) = status            { data_q = data_q.bind(s); }
-        if let Some(ref l) = search_like   { data_q = data_q.bind(l).bind(l).bind(l); }
-        if let Some(f) = date_from         { data_q = data_q.bind(f); }
+        if let Some(s) = status               { data_q = data_q.bind(s); }
+        if let Some(ref l) = search_like      { data_q = data_q.bind(l).bind(l).bind(l); }
+        if let Some(p) = printer_name         { data_q = data_q.bind(p); }
+        if let Some(f) = date_from            { data_q = data_q.bind(f); }
         if let Some(ref t) = date_to_exclusive { data_q = data_q.bind(t.as_str()); }
         let rows = data_q
             .bind(per_page)
@@ -166,6 +179,7 @@ impl JobManager {
                     status,
                     pages:          row.get("pages"),
                     size_bytes:     row.get("size_bytes"),
+                    paper_format:   row.get("paper_format"),
                     created_at:     row.get("created_at"),
                     updated_at:     row.get("updated_at"),
                 }
@@ -187,6 +201,7 @@ impl JobManager {
                 status as "status!: JobStatus",
                 pages,
                 size_bytes,
+                paper_format,
                 created_at as "created_at!",
                 updated_at as "updated_at!"
             FROM jobs
@@ -235,6 +250,7 @@ impl JobManager {
                     status,
                     pages:          row.get("pages"),
                     size_bytes:     row.get("size_bytes"),
+                    paper_format:   row.get("paper_format"),
                     created_at:     row.get("created_at"),
                     updated_at:     row.get("updated_at"),
                 }
@@ -261,11 +277,14 @@ impl JobManager {
         sqlx::query!(
             r#"INSERT INTO jobs
                 (id, spooler_job_id, document_name, user_name, printer_name,
-                 status, pages, size_bytes, created_at, updated_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 status, pages, size_bytes, paper_format, created_at, updated_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                ON CONFLICT(id) DO UPDATE SET
-                 status = excluded.status,
-                 updated_at = excluded.updated_at"#,
+                 status       = excluded.status,
+                 pages        = COALESCE(NULLIF(excluded.pages,      0), NULLIF(pages,      0)),
+                 size_bytes   = COALESCE(NULLIF(excluded.size_bytes, 0), NULLIF(size_bytes, 0)),
+                 paper_format = COALESCE(excluded.paper_format, paper_format),
+                 updated_at   = excluded.updated_at"#,
             job.id,
             job.spooler_job_id,
             job.document_name,
@@ -274,6 +293,7 @@ impl JobManager {
             job.status,
             job.pages,
             job.size_bytes,
+            job.paper_format,
             job.created_at,
             job.updated_at
         )
@@ -490,6 +510,7 @@ impl JobManager {
                 status as "status!: JobStatus",
                 pages,
                 size_bytes,
+                paper_format,
                 created_at as "created_at!",
                 updated_at as "updated_at!"
             FROM jobs
@@ -498,6 +519,40 @@ impl JobManager {
         .fetch_all(&self.pool)
         .await
         .map_err(AppError::from)
+    }
+
+    /// Retorna estatísticas de uso por formato de papel para uma impressora específica.
+    /// Agrupa por paper_format (NULL vira "Desconhecido") e calcula total de jobs e páginas.
+    pub async fn get_printer_format_stats(
+        &self,
+        printer_name: &str,
+    ) -> Result<Vec<PrinterFormatStat>, AppError> {
+        let rows = sqlx::query(
+            r#"SELECT
+                COALESCE(paper_format, 'Desconhecido') AS format,
+                COUNT(*) AS job_count,
+                COALESCE(SUM(pages), 0) AS total_pages
+            FROM jobs
+            WHERE printer_name = ?
+            GROUP BY COALESCE(paper_format, 'Desconhecido')
+            ORDER BY total_pages DESC"#,
+        )
+        .bind(printer_name)
+        .fetch_all(&self.pool)
+        .await
+        .map_err(AppError::from)?;
+
+        use sqlx::Row;
+        let stats = rows
+            .into_iter()
+            .map(|r| PrinterFormatStat {
+                format:      r.get("format"),
+                job_count:   r.get("job_count"),
+                total_pages: r.get("total_pages"),
+            })
+            .collect();
+
+        Ok(stats)
     }
 }
 

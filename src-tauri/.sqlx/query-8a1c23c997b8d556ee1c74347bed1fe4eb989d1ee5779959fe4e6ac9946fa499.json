@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO jobs\n                (id, spooler_job_id, document_name, user_name, printer_name,\n                 status, pages, size_bytes, paper_format, created_at, updated_at)\n               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)\n               ON CONFLICT(id) DO UPDATE SET\n                 status       = excluded.status,\n                 pages        = COALESCE(NULLIF(excluded.pages,      0), NULLIF(pages,      0)),\n                 size_bytes   = COALESCE(NULLIF(excluded.size_bytes, 0), NULLIF(size_bytes, 0)),\n                 paper_format = COALESCE(excluded.paper_format, paper_format),\n                 updated_at   = excluded.updated_at",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 11
+    },
+    "nullable": []
+  },
+  "hash": "8a1c23c997b8d556ee1c74347bed1fe4eb989d1ee5779959fe4e6ac9946fa499"
+}

@@ -12,6 +12,9 @@ pub struct PrintJob {
     pub status: JobStatus,
     pub pages: Option<i64>,
     pub size_bytes: Option<i64>,
+    /// Formato de papel reportado pelo spooler (ex: "A4", "A3", "Carta").
+    /// None quando o driver não fornece essa informação.
+    pub paper_format: Option<String>,
     pub created_at: String,
     pub updated_at: String,
 }

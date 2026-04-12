@@ -1,7 +1,7 @@
 // src/services/printer.service.ts
 import { invoke } from "@tauri-apps/api/core";
 import { parseAppError } from "../utils/errors";
-import type { Printer, PrinterHealthScore } from "../types";
+import type { Printer, PrinterFormatStat, PrinterHealthScore } from "../types";
 
 async function tauriInvoke<T>(cmd: string, args?: Record<string, unknown>): Promise<T> {
   try {
@@ -14,4 +14,6 @@ async function tauriInvoke<T>(cmd: string, args?: Record<string, unknown>): Prom
 export const PrinterService = {
   getAll: () => tauriInvoke<Printer[]>("get_printers"),
   getHealthScores: () => tauriInvoke<PrinterHealthScore[]>("get_printer_health_scores"),
+  getFormatStats: (printerName: string) =>
+    tauriInvoke<PrinterFormatStat[]>("get_printer_format_stats", { printerName }),
 };

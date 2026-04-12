@@ -9,14 +9,15 @@ interface UseJobsParams {
   perPage: number;
   status?: string;
   search?: string;
+  printerName?: string | null;
   dateFrom?: string | null;
   dateTo?: string | null;
 }
 
-export function useJobs({ page, perPage, status, search, dateFrom, dateTo }: UseJobsParams) {
+export function useJobs({ page, perPage, status, search, printerName, dateFrom, dateTo }: UseJobsParams) {
   return useQuery({
-    queryKey: ["jobs", page, perPage, status, search, dateFrom, dateTo],
-    queryFn: () => JobService.getPaginated(page, perPage, status, search, dateFrom, dateTo),
+    queryKey: ["jobs", page, perPage, status, search, printerName, dateFrom, dateTo],
+    queryFn: () => JobService.getPaginated(page, perPage, status, search, printerName, dateFrom, dateTo),
     staleTime: 10_000,
     placeholderData: (prev) => prev,
   });

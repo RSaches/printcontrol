@@ -9,6 +9,7 @@ use chrono::Utc;
 use printers::common::base::job::PrinterJobState;
 use printers::common::base::printer::PrinterState;
 use std::collections::HashMap;
+use std::fs;
 use std::process::Command;
 use std::time::UNIX_EPOCH;
 
@@ -18,6 +19,113 @@ impl LinuxAdapter {
     pub fn new() -> Self {
         Self
     }
+}
+
+/// Atributos de um job CUPS obtidos via IPP.
+struct CupsJobAttrs {
+    pages: Option<i64>,
+    paper_format: Option<String>,
+}
+
+/// Normaliza o atributo IPP `media` para um nome legível.
+///
+/// Exemplos de valores CUPS:
+///   `iso_a4_210x297mm` → "A4"
+///   `iso_a3_297x420mm` → "A3"
+///   `na_letter_8.5x11in` → "Carta"
+///   `na_legal_8.5x14in` → "Ofício"
+fn normalize_cups_media(media: &str) -> String {
+    let m = media.to_lowercase();
+    if m.contains("iso_a4") || m == "a4" { return "A4".to_string(); }
+    if m.contains("iso_a3") || m == "a3" { return "A3".to_string(); }
+    if m.contains("iso_a5") || m == "a5" { return "A5".to_string(); }
+    if m.contains("iso_a2") || m == "a2" { return "A2".to_string(); }
+    if m.contains("iso_a6") || m == "a6" { return "A6".to_string(); }
+    if m.contains("iso_b5") || m == "b5" { return "B5".to_string(); }
+    if m.contains("iso_b4") || m == "b4" { return "B4".to_string(); }
+    if m.contains("na_letter") || m == "letter" { return "Carta".to_string(); }
+    if m.contains("na_legal") || m == "legal"   { return "Ofício".to_string(); }
+    if m.contains("na_tabloid") || m.contains("11x17") { return "Tabloide".to_string(); }
+    // Fallback: remove sufixo de dimensões e retorna o nome em maiúsculas
+    let clean = media
+        .split('_')
+        .take_while(|p| !p.contains('x') && !p.contains("mm") && !p.contains("in"))
+        .collect::<Vec<_>>()
+        .join(" ");
+    if clean.is_empty() { media.to_string() } else { clean.to_uppercase() }
+}
+
+/// Consulta o CUPS via IPP (ipptool) e retorna atributos dos jobs ativos.
+///
+/// Solicita `job-id`, `job-impressions` (páginas) e `media` (formato do papel).
+/// Se `ipptool` não estiver instalado ou falhar, retorna HashMap vazio —
+/// o monitor continua normalmente com pages/paper_format = None.
+fn fetch_cups_job_attrs() -> HashMap<u64, CupsJobAttrs> {
+    let test_content = r#"{
+OPERATION Get-Jobs
+GROUP operation-attributes-tag
+ATTR charset attributes-charset utf-8
+ATTR language attributes-natural-language en
+ATTR uri printer-uri ipp://localhost/
+ATTR boolean my-jobs false
+ATTR keyword which-jobs not-completed
+ATTR keyword requested-attributes job-id,job-impressions,media
+}
+"#;
+
+    let test_path = std::env::temp_dir().join("printcontrol_attrs.test");
+    if fs::write(&test_path, test_content).is_err() {
+        return HashMap::new();
+    }
+
+    let output = Command::new("ipptool")
+        .args(["-v", "ipp://localhost/", test_path.to_str().unwrap_or("")])
+        .output();
+
+    let _ = fs::remove_file(&test_path);
+
+    let stdout = match output {
+        Ok(o) => String::from_utf8_lossy(&o.stdout).into_owned(),
+        Err(_) => return HashMap::new(),
+    };
+
+    // Saída ipptool -v (linha por atributo, indentada):
+    //   job-id (integer) = 42
+    //   job-impressions (integer) = 120
+    //   media (keyword) = iso_a4_210x297mm
+    let mut map: HashMap<u64, CupsJobAttrs> = HashMap::new();
+    let mut current_id: Option<u64> = None;
+
+    for line in stdout.lines() {
+        let line = line.trim();
+
+        if line.starts_with("job-id") {
+            if let Some(eq) = line.rfind('=') {
+                if let Ok(id) = line[eq + 1..].trim().parse::<u64>() {
+                    current_id = Some(id);
+                    map.entry(id).or_insert(CupsJobAttrs { pages: None, paper_format: None });
+                }
+            }
+        } else if line.starts_with("job-impressions") {
+            if let (Some(id), Some(eq)) = (current_id, line.rfind('=')) {
+                if let Ok(n) = line[eq + 1..].trim().parse::<i64>() {
+                    if n > 0 {
+                        map.entry(id).or_insert(CupsJobAttrs { pages: None, paper_format: None }).pages = Some(n);
+                    }
+                }
+            }
+        } else if line.starts_with("media") {
+            if let (Some(id), Some(eq)) = (current_id, line.rfind('=')) {
+                let raw = line[eq + 1..].trim();
+                if !raw.is_empty() {
+                    let fmt = normalize_cups_media(raw);
+                    map.entry(id).or_insert(CupsJobAttrs { pages: None, paper_format: None }).paper_format = Some(fmt);
+                }
+            }
+        }
+    }
+
+    map
 }
 
 /// Executa `lpstat -W not-completed` e retorna um mapa de job_id -> username.
@@ -62,6 +170,8 @@ impl PrintingAdapter for LinuxAdapter {
         tokio::task::spawn_blocking(|| -> Result<Vec<PrintJob>, AppError> {
             // Obtém mapa job_id -> username antes de iterar as impressoras
             let usernames = fetch_usernames_linux();
+            // Tenta obter atributos dos jobs (páginas e formato) via IPP (best-effort)
+            let cups_attrs = fetch_cups_job_attrs();
 
             let all_printers = printers::get_printers();
             let mut jobs = Vec::new();
@@ -94,6 +204,7 @@ impl PrintingAdapter for LinuxAdapter {
                         .cloned()
                         .unwrap_or_else(|| String::from("unknown"));
 
+                    let attrs = cups_attrs.get(&j.id);
                     jobs.push(PrintJob {
                         id: tracking_id,
                         spooler_job_id: Some(j.id as i64),
@@ -101,8 +212,9 @@ impl PrintingAdapter for LinuxAdapter {
                         user_name,
                         printer_name: j.printer_name.clone(),
                         status: map_cups_status(&j.state),
-                        pages: None,
+                        pages: attrs.and_then(|a| a.pages),
                         size_bytes: None,
+                        paper_format: attrs.and_then(|a| a.paper_format.clone()),
                         created_at: now.clone(),
                         updated_at: now,
                     });

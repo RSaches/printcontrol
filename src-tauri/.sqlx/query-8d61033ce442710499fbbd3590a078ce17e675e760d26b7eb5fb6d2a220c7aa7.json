@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "SELECT\n                id as \"id!\",\n                spooler_job_id,\n                document_name as \"document_name!\",\n                user_name as \"user_name!\",\n                printer_name as \"printer_name!\",\n                status as \"status!: JobStatus\",\n                pages,\n                size_bytes,\n                created_at as \"created_at!\",\n                updated_at as \"updated_at!\"\n            FROM jobs\n            WHERE id = ?",
+  "query": "SELECT\n                id as \"id!\",\n                spooler_job_id,\n                document_name as \"document_name!\",\n                user_name as \"user_name!\",\n                printer_name as \"printer_name!\",\n                status as \"status!: JobStatus\",\n                pages,\n                size_bytes,\n                paper_format,\n                created_at as \"created_at!\",\n                updated_at as \"updated_at!\"\n            FROM jobs\n            ORDER BY created_at DESC",
   "describe": {
     "columns": [
       {
@@ -44,18 +44,23 @@
         "type_info": "Integer"
       },
       {
-        "name": "created_at!",
+        "name": "paper_format",
         "ordinal": 8,
         "type_info": "Text"
       },
       {
-        "name": "updated_at!",
+        "name": "created_at!",
         "ordinal": 9,
+        "type_info": "Text"
+      },
+      {
+        "name": "updated_at!",
+        "ordinal": 10,
         "type_info": "Text"
       }
     ],
     "parameters": {
-      "Right": 1
+      "Right": 0
     },
     "nullable": [
       true,
@@ -66,9 +71,10 @@
       false,
       true,
       true,
+      true,
       false,
       false
     ]
   },
-  "hash": "0c0c8462ecc03faf404268ed3f18bfcb88084ccedd443993a88c0c01b36f8a45"
+  "hash": "8d61033ce442710499fbbd3590a078ce17e675e760d26b7eb5fb6d2a220c7aa7"
 }

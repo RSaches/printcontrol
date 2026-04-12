@@ -46,6 +46,8 @@ struct WmiPrintJob {
     status_mask: Option<u32>,
     total_pages: Option<u64>,
     size: Option<u64>,
+    /// Formato de papel reportado pelo driver (ex: "A4", "Letter", "A3").
+    paper_size: Option<String>,
     /// Unix timestamp (segundos) do momento em que o job foi submetido.
     submitted_unix: Option<i64>,
 }
@@ -82,12 +84,13 @@ try {
             } else { 0 }
             [PSCustomObject]@{
                 JobId         = $jobId
-                Document      = if ($j.Document) { $j.Document } else { '' }
+                Document      = if ($j.Document)   { $j.Document }   else { '' }
                 PrinterName   = $pName
-                Owner         = if ($j.Owner)    { $j.Owner }    else { 'unknown' }
+                Owner         = if ($j.Owner)       { $j.Owner }      else { 'unknown' }
                 StatusMask    = if ($null -ne $j.StatusMask) { [uint32]$j.StatusMask } else { [uint32]0 }
                 TotalPages    = $j.TotalPages
                 Size          = $j.Size
+                PaperSize     = if ($j.PaperSize)   { $j.PaperSize }  else { $null }
                 SubmittedUnix = $subUnix
             }
         } catch { $null }
@@ -221,6 +224,7 @@ impl PrintingAdapter for WindowsAdapter {
                     status,
                     pages: j.total_pages.map(|p| p as i64),
                     size_bytes: j.size.map(|s| s as i64),
+                    paper_format: j.paper_size.filter(|s| !s.is_empty()),
                     created_at,
                     updated_at: now.clone(),
                 });

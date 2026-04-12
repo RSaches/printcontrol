@@ -137,7 +137,14 @@
       "Bash(grep -r \"getVersion\\\\|@tauri-apps/api\" /home/sanches/Documentos/PrintControl/src --include=*.ts --include=*.tsx -l 2)",
       "Bash(npx eslint:*)",
       "Bash(cargo clippy:*)",
-      "Bash(grep -v \"^$\")"
+      "Bash(grep -v \"^$\")",
+      "Bash(grep -l \"INSERT INTO jobs\" /home/sanches/Documentos/printcontrol/src-tauri/.sqlx/*.json)",
+      "Bash(DATABASE_URL=\"sqlite:///tmp/printcontrol_prepare.db\" SQLX_OFFLINE=false cargo sqlx database create)",
+      "Bash(DATABASE_URL=\"sqlite:///tmp/printcontrol_prepare.db\" SQLX_OFFLINE=false cargo sqlx migrate run --source src/infrastructure/storage/migrations)",
+      "Bash(DATABASE_URL=\"sqlite:///tmp/printcontrol_prepare.db\" sqlx database create)",
+      "Bash(DATABASE_URL=\"sqlite:///tmp/printcontrol_prepare.db\" sqlx migrate run --source src/infrastructure/storage/migrations)",
+      "Bash(DATABASE_URL=\"sqlite:///tmp/printcontrol_prepare.db\" SQLX_OFFLINE=false cargo sqlx:*)",
+      "Bash(/home/sanches/Documentos/printcontrol/node_modules/.bin/tsc --noEmit)"
     ]
   }
 }
