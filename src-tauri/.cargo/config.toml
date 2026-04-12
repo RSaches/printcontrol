@@ -1,5 +1,7 @@
 [env]
 SQLX_OFFLINE = "true"
+# Impede que o proc-macro do Tauri panic ao verificar ../dist (que não existe em dev)
+TAURI_SKIP_DEVSERVER_CHECK = "true"
 
 # DT_RPATH (--disable-new-dtags) tem prioridade MAIOR que LD_LIBRARY_PATH,
 # garantindo que libs do sistema sejam usadas mesmo quando snap injeta caminhos antigos.

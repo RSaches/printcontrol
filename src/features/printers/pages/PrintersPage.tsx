@@ -75,7 +75,7 @@ function StatPill({ label, value, variant = "default" }: StatPillProps) {
   return (
     <div
       className={cn(
-        "flex flex-col items-center px-2.5 py-1.5 rounded-lg min-w-[52px]",
+        "flex flex-col items-center px-2.5 py-1.5 rounded-lg min-w-13",
         variant === "success" && "bg-[hsl(var(--status-completed-bg))]",
         variant === "danger"  && "bg-[hsl(var(--status-failed-bg))]",
         variant === "warning" && "bg-[hsl(var(--status-pending-bg))]",

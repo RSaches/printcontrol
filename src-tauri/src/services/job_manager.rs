@@ -582,6 +582,7 @@ mod tests {
             status,
             pages: Some(2),
             size_bytes: Some(1024),
+            paper_format: None,
             created_at: created_at.to_string(),
             updated_at: created_at.to_string(),
         }
@@ -719,7 +720,7 @@ mod tests {
             mgr.upsert(&mock_job(&format!("p{}", i), JobStatus::Completed, &ts)).await.unwrap();
         }
 
-        let result = mgr.get_paginated(1, 2, None, None, None, None).await.unwrap();
+        let result = mgr.get_paginated(1, 2, None, None, None, None, None).await.unwrap();
         assert_eq!(result.total, 5);
         assert_eq!(result.jobs.len(), 2);
         assert_eq!(result.page, 1);
@@ -733,7 +734,7 @@ mod tests {
         mgr.upsert(&mock_job("f2", JobStatus::Failed,    "2026-01-02T00:00:00+00:00")).await.unwrap();
         mgr.upsert(&mock_job("f3", JobStatus::Completed, "2026-01-03T00:00:00+00:00")).await.unwrap();
 
-        let result = mgr.get_paginated(1, 10, Some("FAILED"), None, None, None).await.unwrap();
+        let result = mgr.get_paginated(1, 10, Some("FAILED"), None, None, None, None).await.unwrap();
         assert_eq!(result.total, 2);
         assert!(result.jobs.iter().all(|j| j.status == JobStatus::Failed));
     }
@@ -750,7 +751,7 @@ mod tests {
         job2.document_name = "nota_fiscal.pdf".to_string();
         mgr.upsert(&job2).await.unwrap();
 
-        let result = mgr.get_paginated(1, 10, None, Some("relatorio"), None, None).await.unwrap();
+        let result = mgr.get_paginated(1, 10, None, Some("relatorio"), None, None, None).await.unwrap();
         assert_eq!(result.total, 1);
         assert_eq!(result.jobs[0].document_name, "relatorio_anual.pdf");
     }

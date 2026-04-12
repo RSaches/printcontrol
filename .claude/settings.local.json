@@ -144,7 +144,8 @@
       "Bash(DATABASE_URL=\"sqlite:///tmp/printcontrol_prepare.db\" sqlx database create)",
       "Bash(DATABASE_URL=\"sqlite:///tmp/printcontrol_prepare.db\" sqlx migrate run --source src/infrastructure/storage/migrations)",
       "Bash(DATABASE_URL=\"sqlite:///tmp/printcontrol_prepare.db\" SQLX_OFFLINE=false cargo sqlx:*)",
-      "Bash(/home/sanches/Documentos/printcontrol/node_modules/.bin/tsc --noEmit)"
+      "Bash(/home/sanches/Documentos/printcontrol/node_modules/.bin/tsc --noEmit)",
+      "Bash(pnpm build:*)"
     ]
   }
 }

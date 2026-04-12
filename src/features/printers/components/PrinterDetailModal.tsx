@@ -497,7 +497,7 @@ export function PrinterDetailModal({
             {!loadingJobs && jobs.length > 0 && (
               <div className="rounded-xl border overflow-hidden">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-xs min-w-[560px]">
+                  <table className="w-full text-xs min-w-140">
                     <thead>
                       <tr className="border-b bg-muted/40">
                         <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">
@@ -535,7 +535,7 @@ export function PrinterDetailModal({
                           key={job.id}
                           className="border-b last:border-0 hover:bg-muted/20 transition-colors"
                         >
-                          <td className="px-4 py-2.5 max-w-[200px]">
+                          <td className="px-4 py-2.5 max-w-50">
                             <p
                               className="truncate font-medium text-foreground"
                               title={job.document_name}
@@ -543,7 +543,7 @@ export function PrinterDetailModal({
                               {job.document_name}
                             </p>
                           </td>
-                          <td className="px-4 py-2.5 text-muted-foreground max-w-[100px]">
+                          <td className="px-4 py-2.5 text-muted-foreground max-w-25">
                             <p className="truncate" title={job.user_name}>
                               {job.user_name}
                             </p>
